@@ -1,5 +1,6 @@
 package org.datadog.parser;
 
+import com.google.inject.Inject;
 import com.sun.istack.internal.NotNull;
 import org.datadog.log.CommonLogFormatEntry;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
 
   private Parser<CommonLogFormatEntry, String> parser;
 
+  @Inject
   public CommonLogFormatHandlerImpl(@NotNull Parser parser) {
     this.parser = parser;
   }
