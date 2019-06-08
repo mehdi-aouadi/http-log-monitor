@@ -1,0 +1,8 @@
+# IntelliJ
+/.idea/*
+*/target/*
+*.iml
+
+# Maven
+target/
+doc/
