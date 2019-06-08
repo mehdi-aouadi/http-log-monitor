@@ -1,7 +1,9 @@
 package org.datadog.parser;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.sun.istack.internal.NotNull;
+import lombok.NonNull;
 import org.datadog.log.CommonLogFormatEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +17,12 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(CommonLogFormatHandlerImpl.class);
 
   private Parser<CommonLogFormatEntry, String> parser;
+  private EventBus eventBus;
 
   @Inject
-  public CommonLogFormatHandlerImpl(@NotNull Parser parser) {
+  public CommonLogFormatHandlerImpl(@NotNull Parser parser, @NonNull EventBus eventBus) {
     this.parser = parser;
+    this.eventBus = eventBus;
   }
 
   /**
@@ -28,8 +32,8 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
   @Override
   public void process(String line) {
     try {
-      //// TODO: 6/6/2019 Handle CommonLogFormatEntry
-      this.parser.parse(line);
+      CommonLogFormatEntry commonLogFormatEntry = this.parser.parse(line);
+      this.eventBus.post(commonLogFormatEntry);
     } catch (ParseException parseException) {
       LOGGER.error("Invalid Common Log Format. Line : {}", line, parseException);
     }
