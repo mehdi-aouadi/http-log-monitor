@@ -1,11 +1,18 @@
 package org.datadog.utils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.datadog.parser.ParseException;
 
 /**
  * Common Log Format handling utilities class.
  */
 public class CommonLogFormatUtils {
+
+  private static final String SECTION_GROUP = "section";
+  private static final Pattern SECTION_PATTERN = Pattern.compile(
+      "^/(?<" + SECTION_GROUP + ">[^/]+)/.+$");
 
   /**
    * Retrieves an int value from a Common Log Format field.
@@ -36,6 +43,25 @@ public class CommonLogFormatUtils {
    */
   public static String retrieveString(String value) {
     return value.equals("-") ? null : value;
+  }
+
+  /**
+   * Retrieves the web site section from a resource url.
+   * A section is defined as being what's before the second '/' in a URL.
+   *  i.e. the section for "/pages/create' is "pages")
+   * @param resource
+   * @return
+   * @throws ParseException
+   */
+  public static String retrieveSection(String resource) throws ParseException {
+    Matcher sectionMatcher = SECTION_PATTERN.matcher(resource);
+    if (sectionMatcher.find()) {
+      return sectionMatcher.group(SECTION_GROUP);
+    } else {
+      throw new ParseException(
+          String.format("Invalid resource url. Unable to retrieve section from %s", resource)
+      );
+    }
   }
 
 }
