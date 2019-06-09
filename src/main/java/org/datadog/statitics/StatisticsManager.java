@@ -6,14 +6,13 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.datadog.log.CommonLogFormatEntry;
 import org.datadog.parser.ParseException;
@@ -28,9 +27,9 @@ import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
  * The events are stored internally in {@link ConcurrentLinkedQueue}
  *  and retrieved from an {@link EventBus}
  */
-public class StatisticsConsumer {
+public class StatisticsManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsManager.class);
 
   private final EventBus eventBus;
   private final Queue<CommonLogFormatEntry> logStore = new ConcurrentLinkedQueue<>();
@@ -44,7 +43,7 @@ public class StatisticsConsumer {
    *                     the events of the last refresh periods seconds are processed.
    */
   @Inject
-  public StatisticsConsumer(EventBus eventBus, int refreshPeriod) {
+  public StatisticsManager(EventBus eventBus, int refreshPeriod) {
     this.eventBus = eventBus;
     TimerTask statisticRefreshTimerTask = new TimerTask() {
       @Override
@@ -72,7 +71,6 @@ public class StatisticsConsumer {
     Map<String, Integer> sectionsHits = new HashMap<>();
     Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
-    Instant test = commonLogFormatEntry.getLogDateTime().toInstant();
     while (commonLogFormatEntry != null
         && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
       trafficSize += commonLogFormatEntry.getSize();
@@ -92,7 +90,15 @@ public class StatisticsConsumer {
       commonLogFormatEntry = this.logStore.poll();
     }
     this.eventBus.post(
-        TrafficStatistic.builder().totalTrafficSize(trafficSize).sectionsHits(sectionsHits).build()
+        TrafficStatistic.builder()
+            .totalTrafficSize(trafficSize)
+            .sectionsHits(
+                sectionsHits.entrySet().stream()
+                    .sorted(Collections.reverseOrder())
+                    .limit(5)
+                    .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()))
+            )
+            .build()
     );
   }
 
