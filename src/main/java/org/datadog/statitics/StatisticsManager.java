@@ -6,7 +6,10 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -92,19 +95,34 @@ public class StatisticsManager {
     this.eventBus.post(
         TrafficStatistic.builder()
             .totalTrafficSize(trafficSize)
-            .sectionsHits(
-                sectionsHits.entrySet().stream()
-                    .sorted(Collections.reverseOrder())
-                    .limit(5)
-                    .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()))
-            )
+            .sectionsHits(sectionsHits)
             .build()
     );
   }
 
+  /**
+   * Consumes a {@link CommonLogFormatEntry} event.
+   * It adds the {@link CommonLogFormatEntry} to the log buffer if its log date time is after
+   *  the most recent stored log entry and discards it otherwise.
+   * @param commonLogFormatEntry a {@link CommonLogFormatEntry} type event.
+   */
   @Subscribe
   public void consumeClfEvent(CommonLogFormatEntry commonLogFormatEntry) {
-    this.logStore.add(commonLogFormatEntry);
+    // The followging check is made only for unusual behaviour.
+    // According to Guava EventBus documentation the events are received in the same
+    //  publishing otder.
+    // This check enforces a clean log store.
+    CommonLogFormatEntry lastLogEntr = this.logStore.peek();
+    if (lastLogEntr.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
+      LOGGER.warn(
+          "Common Log Format Entr Event discarded : {}. "
+              + "Log date time is before the last log entry in the buffer {}.",
+          commonLogFormatEntry,
+          lastLogEntr
+      );
+    } else {
+      this.logStore.add(commonLogFormatEntry);
+    }
   }
 
 }
