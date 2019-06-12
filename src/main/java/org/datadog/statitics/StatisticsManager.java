@@ -108,17 +108,17 @@ public class StatisticsManager {
    */
   @Subscribe
   public void consumeClfEvent(CommonLogFormatEntry commonLogFormatEntry) {
-    // The followging check is made only for unusual behaviour.
+    // The following check is made only for unusual behaviour.
     // According to Guava EventBus documentation the events are received in the same
-    //  publishing otder.
+    //  publishing order.
     // This check enforces a clean log store.
-    CommonLogFormatEntry lastLogEntr = this.logStore.peek();
-    if (lastLogEntr.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
+    CommonLogFormatEntry lastLogEntry = this.logStore.peek();
+    if (lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
       LOGGER.warn(
           "Common Log Format Entr Event discarded : {}. "
               + "Log date time is before the last log entry in the buffer {}.",
           commonLogFormatEntry,
-          lastLogEntr
+          lastLogEntry
       );
     } else {
       this.logStore.add(commonLogFormatEntry);

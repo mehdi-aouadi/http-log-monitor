@@ -7,11 +7,13 @@ import org.datadog.statitics.TrafficStatistic;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.eq;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StatisticsManagerTest {
@@ -43,7 +45,7 @@ public class StatisticsManagerTest {
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
+    verify(eventBus).post(eq(trafficStatistic));
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -80,7 +82,7 @@ public class StatisticsManagerTest {
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
+    verify(eventBus).post(eq(trafficStatistic));
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -117,7 +119,7 @@ public class StatisticsManagerTest {
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
+    verify(eventBus).post(eq(trafficStatistic));
   }
 
 
