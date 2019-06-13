@@ -2,7 +2,7 @@ package org.datadog.statistics;
 
 import com.google.common.eventbus.EventBus;
 import org.datadog.log.CommonLogFormatEntry;
-import org.datadog.statitics.StatisticsManager;
+import org.datadog.statitics.TrafficStatisticsManager;
 import org.datadog.statitics.TrafficStatistic;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,14 +16,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.eq;
 
 @RunWith(MockitoJUnitRunner.class)
-public class StatisticsManagerTest {
+public class TrafficStatisticsManagerTest {
 
   @Mock
   private EventBus eventBus;
 
   @Test
   public void refreshStatisticsNominalTest() {
-    StatisticsManager statisticsManager = new StatisticsManager(eventBus, 10);
+    TrafficStatisticsManager trafficStatisticsManager = new TrafficStatisticsManager(eventBus, 10);
     CommonLogFormatEntry commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
         .userRfcId("userRfcId")
@@ -35,8 +35,8 @@ public class StatisticsManagerTest {
         .status(200)
         .size(123)
         .build();
-    statisticsManager.consumeClfEvent(commonLogFormatEntry);
-    statisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
+    trafficStatisticsManager.refreshStatistics(30);
 
     TrafficStatistic trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(123)
@@ -58,7 +58,7 @@ public class StatisticsManagerTest {
         .status(200)
         .size(100)
         .build();
-    statisticsManager.consumeClfEvent(commonLogFormatEntry);
+    trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -71,9 +71,9 @@ public class StatisticsManagerTest {
         .status(200)
         .size(200)
         .build();
-    statisticsManager.consumeClfEvent(commonLogFormatEntry);
+    trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    statisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.refreshStatistics(30);
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
@@ -95,7 +95,7 @@ public class StatisticsManagerTest {
         .status(200)
         .size(100)
         .build();
-    statisticsManager.consumeClfEvent(commonLogFormatEntry);
+    trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -108,9 +108,9 @@ public class StatisticsManagerTest {
         .status(200)
         .size(200)
         .build();
-    statisticsManager.consumeClfEvent(commonLogFormatEntry);
+    trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    statisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.refreshStatistics(30);
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)

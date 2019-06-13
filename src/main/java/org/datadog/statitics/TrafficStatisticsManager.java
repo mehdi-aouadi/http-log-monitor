@@ -29,9 +29,9 @@ import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
  * The events are stored internally in {@link ConcurrentLinkedQueue}
  *  and retrieved from an {@link EventBus}
  */
-public class StatisticsManager {
+public class TrafficStatisticsManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrafficStatisticsManager.class);
 
   private final EventBus eventBus;
   private final Queue<CommonLogFormatEntry> logStore = new ConcurrentLinkedQueue<>();
@@ -45,7 +45,7 @@ public class StatisticsManager {
    *                     the events of the last refresh periods seconds are processed.
    */
   @Inject
-  public StatisticsManager(EventBus eventBus, int refreshPeriod) {
+  public TrafficStatisticsManager(EventBus eventBus, int refreshPeriod) {
     this.eventBus = eventBus;
     TimerTask statisticRefreshTimerTask = new TimerTask() {
       @Override
@@ -70,12 +70,29 @@ public class StatisticsManager {
   @VisibleForTesting
   public void refreshStatistics(int timeSecondsInterval) {
     long trafficSize = 0;
+    int totalHits = 0;
+    int successCount = 0;
+    int clientErrorCount = 0;
+    int serverErrorCount = 0;
     Map<String, Integer> sectionsHits = new HashMap<>();
+    Map<String, Integer> methodsHits = new HashMap<>();
     Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
     while (commonLogFormatEntry != null
         && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
       trafficSize += commonLogFormatEntry.getSize();
+      totalHits++;
+      if (commonLogFormatEntry.getStatus() >= 200
+          && commonLogFormatEntry.getStatus() < 300) {
+        successCount++;
+      } else if (commonLogFormatEntry.getStatus() >= 400
+          && commonLogFormatEntry.getStatus() < 500) {
+        clientErrorCount++;
+      } else if (commonLogFormatEntry.getStatus() >= 500
+          && commonLogFormatEntry.getStatus() < 600) {
+        serverErrorCount++;
+      }
+
       try {
         sectionsHits.merge(
             retrieveSection(commonLogFormatEntry.getResource()),
@@ -89,12 +106,15 @@ public class StatisticsManager {
             parseException
         );
       }
+
+      methodsHits.merge(commonLogFormatEntry.getMethod(), 1, Integer::sum);
+
       commonLogFormatEntry = this.logStore.poll();
     }
 
-    if(!this.logStore.isEmpty()) {
-      LOGGER.warn("Some Common Log Format Entry Events have not been processed and will be " +
-              "discarded : {}",
+    if (!this.logStore.isEmpty()) {
+      LOGGER.warn("Some Common Log Format Entry Events have not been processed and will be "
+              + "discarded : {}",
           Arrays.asList(this.logStore));
       this.logStore.clear();
     }
@@ -102,7 +122,12 @@ public class StatisticsManager {
     this.eventBus.post(
         TrafficStatistic.builder()
             .totalTrafficSize(trafficSize)
+            .totalHitsCount(totalHits)
+            .successRequestsCount(successCount)
+            .clientErrorRequestCount(clientErrorCount)
+            .serverErrorRequestCount(serverErrorCount)
             .sectionsHits(sectionsHits)
+            .methodsHits(methodsHits)
             .build()
     );
   }
@@ -121,7 +146,8 @@ public class StatisticsManager {
     // This check enforces a clean log store in case of corrupted log entries or unordered events
     // reception.
     CommonLogFormatEntry lastLogEntry = this.logStore.peek();
-    if (lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
+    if (lastLogEntry != null
+        && lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
       LOGGER.warn(
           "Common Log Format Entry Event discarded : {}. "
               + "Log date time is before the last log entry in the buffer {}.",

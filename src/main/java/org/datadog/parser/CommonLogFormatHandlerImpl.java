@@ -2,7 +2,6 @@ package org.datadog.parser;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
-import com.sun.istack.internal.NotNull;
 import lombok.NonNull;
 import org.datadog.log.CommonLogFormatEntry;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
   private EventBus eventBus;
 
   @Inject
-  public CommonLogFormatHandlerImpl(@NotNull Parser parser, @NonNull EventBus eventBus) {
+  public CommonLogFormatHandlerImpl(@NonNull Parser parser, @NonNull EventBus eventBus) {
     this.parser = parser;
     this.eventBus = eventBus;
   }

@@ -1,17 +1,20 @@
 package org.datadog.statitics;
 
+import java.util.Map;
+
 import lombok.Builder;
 import lombok.Value;
-
-import java.util.Map;
 
 @Value
 @Builder
 public class TrafficStatistic {
-  long totalTrafficSize;
-  Map<String, Integer> sectionsHits;
 
-  public double totalHits() {
-    return this.sectionsHits.values().stream().mapToInt(Integer::intValue).sum();
-  }
+  private final long totalTrafficSize;
+  private final int totalHitsCount;
+  private final int successRequestsCount;
+  private final int clientErrorRequestCount;
+  private final int serverErrorRequestCount;
+  Map<String, Integer> sectionsHits;
+  Map<String, Integer> methodsHits;
+
 }

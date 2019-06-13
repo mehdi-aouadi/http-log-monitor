@@ -57,13 +57,12 @@ public class AlertsManager {
   private void checkForAlert(TrafficStatistic trafficStatistic) {
 
     if (this.trafficStatisticsQueue.remainingCapacity() == 0) {
-      this.totalHits -= this.trafficStatisticsQueue.peek().getSectionsHits()
-          .values().stream().mapToInt(Integer::intValue).sum();
+      this.totalHits -= this.trafficStatisticsQueue.peek().getTotalHitsCount();
     }
 
     this.trafficStatisticsQueue.add(trafficStatistic);
 
-    this.totalHits += trafficStatistic.totalHits();
+    this.totalHits += trafficStatistic.getTotalHitsCount();
 
     float hitsAverage = (float) this.totalHits / this.trafficStatisticsQueue.size();
     if (this.highTrafficTriggered && hitsAverage < this.hitsThreshold) {
