@@ -6,6 +6,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -14,8 +15,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import org.datadog.log.CommonLogFormatEntry;
 import org.datadog.parser.ParseException;
@@ -92,6 +91,14 @@ public class StatisticsManager {
       }
       commonLogFormatEntry = this.logStore.poll();
     }
+
+    if(!this.logStore.isEmpty()) {
+      LOGGER.warn("Some Common Log Format Entry Events have not been processed and will be " +
+              "discarded : {}",
+          Arrays.asList(this.logStore));
+      this.logStore.clear();
+    }
+
     this.eventBus.post(
         TrafficStatistic.builder()
             .totalTrafficSize(trafficSize)
@@ -111,11 +118,12 @@ public class StatisticsManager {
     // The following check is made only for unusual behaviour.
     // According to Guava EventBus documentation the events are received in the same
     //  publishing order.
-    // This check enforces a clean log store.
+    // This check enforces a clean log store in case of corrupted log entries or unordered events
+    // reception.
     CommonLogFormatEntry lastLogEntry = this.logStore.peek();
     if (lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
       LOGGER.warn(
-          "Common Log Format Entr Event discarded : {}. "
+          "Common Log Format Entry Event discarded : {}. "
               + "Log date time is before the last log entry in the buffer {}.",
           commonLogFormatEntry,
           lastLogEntry
