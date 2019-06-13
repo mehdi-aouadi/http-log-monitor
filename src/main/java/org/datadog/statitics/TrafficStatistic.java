@@ -10,4 +10,8 @@ import java.util.Map;
 public class TrafficStatistic {
   long totalTrafficSize;
   Map<String, Integer> sectionsHits;
+
+  public double totalHits() {
+    return this.sectionsHits.values().stream().mapToInt(Integer::intValue).sum();
+  }
 }

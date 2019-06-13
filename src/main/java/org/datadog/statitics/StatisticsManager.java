@@ -6,6 +6,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -28,9 +29,9 @@ import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
  * The events are stored internally in {@link ConcurrentLinkedQueue}
  *  and retrieved from an {@link EventBus}
  */
-public class StatisticsConsumer {
+public class StatisticsManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsManager.class);
 
   private final EventBus eventBus;
   private final Queue<CommonLogFormatEntry> logStore = new ConcurrentLinkedQueue<>();
@@ -44,7 +45,7 @@ public class StatisticsConsumer {
    *                     the events of the last refresh periods seconds are processed.
    */
   @Inject
-  public StatisticsConsumer(EventBus eventBus, int refreshPeriod) {
+  public StatisticsManager(EventBus eventBus, int refreshPeriod) {
     this.eventBus = eventBus;
     TimerTask statisticRefreshTimerTask = new TimerTask() {
       @Override
@@ -72,7 +73,6 @@ public class StatisticsConsumer {
     Map<String, Integer> sectionsHits = new HashMap<>();
     Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
-    Instant test = commonLogFormatEntry.getLogDateTime().toInstant();
     while (commonLogFormatEntry != null
         && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
       trafficSize += commonLogFormatEntry.getSize();
@@ -91,14 +91,46 @@ public class StatisticsConsumer {
       }
       commonLogFormatEntry = this.logStore.poll();
     }
+
+    if(!this.logStore.isEmpty()) {
+      LOGGER.warn("Some Common Log Format Entry Events have not been processed and will be " +
+              "discarded : {}",
+          Arrays.asList(this.logStore));
+      this.logStore.clear();
+    }
+
     this.eventBus.post(
-        TrafficStatistic.builder().totalTrafficSize(trafficSize).sectionsHits(sectionsHits).build()
+        TrafficStatistic.builder()
+            .totalTrafficSize(trafficSize)
+            .sectionsHits(sectionsHits)
+            .build()
     );
   }
 
+  /**
+   * Consumes a {@link CommonLogFormatEntry} event.
+   * It adds the {@link CommonLogFormatEntry} to the log buffer if its log date time is after
+   *  the most recent stored log entry and discards it otherwise.
+   * @param commonLogFormatEntry a {@link CommonLogFormatEntry} type event.
+   */
   @Subscribe
   public void consumeClfEvent(CommonLogFormatEntry commonLogFormatEntry) {
-    this.logStore.add(commonLogFormatEntry);
+    // The following check is made only for unusual behaviour.
+    // According to Guava EventBus documentation the events are received in the same
+    //  publishing order.
+    // This check enforces a clean log store in case of corrupted log entries or unordered events
+    // reception.
+    CommonLogFormatEntry lastLogEntry = this.logStore.peek();
+    if (lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
+      LOGGER.warn(
+          "Common Log Format Entry Event discarded : {}. "
+              + "Log date time is before the last log entry in the buffer {}.",
+          commonLogFormatEntry,
+          lastLogEntry
+      );
+    } else {
+      this.logStore.add(commonLogFormatEntry);
+    }
   }
 
 }

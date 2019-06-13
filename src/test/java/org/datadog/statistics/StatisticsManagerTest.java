@@ -2,26 +2,28 @@ package org.datadog.statistics;
 
 import com.google.common.eventbus.EventBus;
 import org.datadog.log.CommonLogFormatEntry;
-import org.datadog.statitics.StatisticsConsumer;
+import org.datadog.statitics.StatisticsManager;
 import org.datadog.statitics.TrafficStatistic;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.eq;
+
 @RunWith(MockitoJUnitRunner.class)
-public class StatisticsConsumerTest {
+public class StatisticsManagerTest {
 
   @Mock
   private EventBus eventBus;
 
   @Test
   public void refreshStatisticsNominalTest() {
-    StatisticsConsumer statisticsConsumer = new StatisticsConsumer(eventBus, 10);
+    StatisticsManager statisticsManager = new StatisticsManager(eventBus, 10);
     CommonLogFormatEntry commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
         .userRfcId("userRfcId")
@@ -33,8 +35,8 @@ public class StatisticsConsumerTest {
         .status(200)
         .size(123)
         .build();
-    statisticsConsumer.consumeClfEvent(commonLogFormatEntry);
-    statisticsConsumer.refreshStatistics(30);
+    statisticsManager.consumeClfEvent(commonLogFormatEntry);
+    statisticsManager.refreshStatistics(30);
 
     TrafficStatistic trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(123)
@@ -43,7 +45,7 @@ public class StatisticsConsumerTest {
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
+    verify(eventBus).post(eq(trafficStatistic));
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -56,7 +58,7 @@ public class StatisticsConsumerTest {
         .status(200)
         .size(100)
         .build();
-    statisticsConsumer.consumeClfEvent(commonLogFormatEntry);
+    statisticsManager.consumeClfEvent(commonLogFormatEntry);
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -69,9 +71,9 @@ public class StatisticsConsumerTest {
         .status(200)
         .size(200)
         .build();
-    statisticsConsumer.consumeClfEvent(commonLogFormatEntry);
+    statisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    statisticsConsumer.refreshStatistics(30);
+    statisticsManager.refreshStatistics(30);
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
@@ -80,13 +82,9 @@ public class StatisticsConsumerTest {
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
-  }
+    verify(eventBus).post(eq(trafficStatistic));
 
-  @Test
-  public void refreshStatisticsBadSectionDiscardTest() {
-    StatisticsConsumer statisticsConsumer = new StatisticsConsumer(eventBus, 10);
-    CommonLogFormatEntry commonLogFormatEntry = CommonLogFormatEntry.builder()
+    commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
         .userRfcId("userRfcId")
         .userId("John Galt")
@@ -97,7 +95,7 @@ public class StatisticsConsumerTest {
         .status(200)
         .size(100)
         .build();
-    statisticsConsumer.consumeClfEvent(commonLogFormatEntry);
+    statisticsManager.consumeClfEvent(commonLogFormatEntry);
 
     commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
@@ -110,18 +108,18 @@ public class StatisticsConsumerTest {
         .status(200)
         .size(200)
         .build();
-    statisticsConsumer.consumeClfEvent(commonLogFormatEntry);
+    statisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    statisticsConsumer.refreshStatistics(30);
+    statisticsManager.refreshStatistics(30);
 
-    TrafficStatistic trafficStatistic = TrafficStatistic.builder()
+    trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
         .sectionsHits(new HashMap<String, Integer>() {{
           put("pages", 1);
         }})
         .build();
 
-    Mockito.verify(eventBus).post(Mockito.eq(trafficStatistic));
+    verify(eventBus).post(eq(trafficStatistic));
   }
 
 
