@@ -3,17 +3,15 @@ package org.datadog.parser;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.datadog.log.CommonLogFormatEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A {@link String} output handler.
  * It uses a Common Log Format Parser to process the output.
  */
+@Slf4j
 public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(CommonLogFormatHandlerImpl.class);
 
   private Parser<CommonLogFormatEntry, String> parser;
   private EventBus eventBus;
@@ -34,7 +32,7 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
       CommonLogFormatEntry commonLogFormatEntry = this.parser.parse(line);
       this.eventBus.post(commonLogFormatEntry);
     } catch (ParseException parseException) {
-      LOGGER.error("Invalid Common Log Format. Line : {}", line, parseException);
+      log.error("Invalid Common Log Format. Line : {}", line, parseException);
     }
   }
 }

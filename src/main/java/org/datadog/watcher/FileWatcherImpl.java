@@ -18,9 +18,8 @@ import javax.inject.Inject;
 
 import lombok.NonNull;
 
+import lombok.extern.slf4j.Slf4j;
 import org.datadog.parser.OutputHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A file {@link ResourceWatcher} implemnatation.
@@ -28,9 +27,8 @@ import org.slf4j.LoggerFactory;
  * The file content that already exist before the watcher is launched is skipped.
  * Only file content addition is handled.
  */
+@Slf4j
 public class FileWatcherImpl implements ResourceWatcher {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcherImpl.class);
 
   private WatchService watchService;
   private Path filePath;
@@ -60,7 +58,7 @@ public class FileWatcherImpl implements ResourceWatcher {
       }
 
     } catch (IOException exception) {
-      LOGGER.error("Error during FileWatcher initialization.", exception);
+      log.error("Error during FileWatcher initialization.", exception);
     }
   }
 
@@ -103,7 +101,7 @@ public class FileWatcherImpl implements ResourceWatcher {
       }
       watchKey.reset();
     } catch (IOException | InterruptedException exception) {
-      LOGGER.error(exception.getMessage(), exception);
+      log.error(exception.getMessage(), exception);
     }
   }
 

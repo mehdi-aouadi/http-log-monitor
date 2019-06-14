@@ -18,10 +18,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.datadog.log.CommonLogFormatEntry;
 import org.datadog.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
 
@@ -31,9 +30,8 @@ import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
  * The events are stored internally in {@link ConcurrentLinkedQueue}
  *  and retrieved from an {@link EventBus}
  */
+@Slf4j
 public class TrafficStatisticsManager {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(TrafficStatisticsManager.class);
 
   private final EventBus eventBus;
   private final Queue<CommonLogFormatEntry> logStore = new ConcurrentLinkedQueue<>();
@@ -102,7 +100,7 @@ public class TrafficStatisticsManager {
             Integer::sum
         );
       } catch (ParseException parseException) {
-        LOGGER.error("Invalid resource url. Unable to retrieve section from {}."
+        log.error("Invalid resource url. Unable to retrieve section from {}."
                 + " This request will not be considered in hits by section statistics.",
             commonLogFormatEntry.getResource(),
             parseException
@@ -115,7 +113,7 @@ public class TrafficStatisticsManager {
     }
 
     if (!this.logStore.isEmpty()) {
-      LOGGER.warn("Some Common Log Format Entry Events have not been processed and will be "
+      log.warn("Some Common Log Format Entry Events have not been processed and will be "
               + "discarded : {}",
           Arrays.asList(this.logStore));
       this.logStore.clear();
@@ -154,7 +152,7 @@ public class TrafficStatisticsManager {
     if (lastLogEntry != null
         && commonLogFormatEntry.getLogDateTime().isBefore(lastLogEntry.getLogDateTime())
     ) {
-      LOGGER.warn(
+      log.warn(
           "Common Log Format Entry Event discarded : {}. "
               + "Log date time is before the last log entry in the buffer {}.",
           commonLogFormatEntry,
