@@ -43,10 +43,7 @@ public class AlertManagerTest {
   @Test
   public void firstTrafficStatisticsAboveThreshold() {
     TrafficStatistic trafficStatistic = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(10)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(trafficStatistic);
@@ -56,14 +53,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.HIGH_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals(trafficStatistic.totalHits(),
+    assertEquals(trafficStatistic.getTotalHitsCount(),
         argumentCaptor.getValue().getHitsAverage(),
         0);
     ZonedDateTime alertDateTime = argumentCaptor.getValue().getAlertDateTime();
     assertTrue(correctAlertDateTime(alertDateTime));
     assertEquals(MessageFormat.format(
         TrafficAlert.AlertType.HIGH_TRAFFIC.getMessage(),
-        trafficStatistic.totalHits(),
+        trafficStatistic.getTotalHitsCount(),
         alertDateTime.toLocalTime().withNano(0)
     ), argumentCaptor.getValue().getMessage());
   }
@@ -71,10 +68,7 @@ public class AlertManagerTest {
   @Test
   public void noAlertsBeforeRecovering() {
     TrafficStatistic firstTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(10)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(firstTrafficStatistics);
@@ -84,17 +78,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.HIGH_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals(firstTrafficStatistics.totalHits(),
+    assertEquals(firstTrafficStatistics.getTotalHitsCount(),
         argumentCaptor.getValue().getHitsAverage(),
         0);
     ZonedDateTime alertDateTime = argumentCaptor.getValue().getAlertDateTime();
     assertTrue(correctAlertDateTime(alertDateTime));
 
     TrafficStatistic secondTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(10)
         .build();
 
     reset(this.eventBus);
@@ -108,10 +99,7 @@ public class AlertManagerTest {
   @Test
   public void noRecoverAlertWithoutHighAlert() {
     TrafficStatistic firstTrafficStatistic = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 4);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(9)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(firstTrafficStatistic);
@@ -122,10 +110,7 @@ public class AlertManagerTest {
   @Test
   public void recoveredAlertAfterHighTraffic() {
     TrafficStatistic firstTrafficStatistic = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(10)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(firstTrafficStatistic);
@@ -135,16 +120,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.HIGH_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals(firstTrafficStatistic.totalHits(),
+    assertEquals(firstTrafficStatistic.getTotalHitsCount(),
         argumentCaptor.getValue().getHitsAverage(),
         0);
     ZonedDateTime alertDateTime = argumentCaptor.getValue().getAlertDateTime();
     assertTrue(correctAlertDateTime(alertDateTime));
 
     TrafficStatistic secondTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-        }})
+        .totalHitsCount(5)
         .build();
 
     reset(this.eventBus);
@@ -154,7 +137,7 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.RECOVERED_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals((firstTrafficStatistic.totalHits() + secondTrafficStatistics.totalHits()) / 2,
+    assertEquals((float) (firstTrafficStatistic.getTotalHitsCount() + secondTrafficStatistics.getTotalHitsCount()) / 2,
         argumentCaptor.getValue().getHitsAverage(),
         0);
     alertDateTime = argumentCaptor.getValue().getAlertDateTime();
@@ -164,10 +147,7 @@ public class AlertManagerTest {
   @Test
   public void noRecoveredAlertIfAlreadyPublished() {
     TrafficStatistic firstTrafficStatistic = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 5);
-        }})
+        .totalHitsCount(10)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(firstTrafficStatistic);
@@ -177,16 +157,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.HIGH_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals(firstTrafficStatistic.totalHits(),
+    assertEquals(firstTrafficStatistic.getTotalHitsCount(),
         argumentCaptor.getValue().getHitsAverage(),
         0);
     ZonedDateTime alertDateTime = argumentCaptor.getValue().getAlertDateTime();
     assertTrue(correctAlertDateTime(alertDateTime));
 
     TrafficStatistic secondTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-        }})
+        .totalHitsCount(5)
         .build();
 
     reset(this.eventBus);
@@ -196,16 +174,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.RECOVERED_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals((firstTrafficStatistic.totalHits() + secondTrafficStatistics.totalHits()) / 2,
+    assertEquals((float) (firstTrafficStatistic.getTotalHitsCount() + secondTrafficStatistics.getTotalHitsCount()) / 2,
         argumentCaptor.getValue().getHitsAverage(),
         0);
     alertDateTime = argumentCaptor.getValue().getAlertDateTime();
     assertTrue(correctAlertDateTime(alertDateTime));
 
     TrafficStatistic thirdTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-        }})
+        .totalHitsCount(5)
         .build();
 
     reset(this.eventBus);
@@ -219,10 +195,7 @@ public class AlertManagerTest {
   public void alertManagerGeneralTest() {
 
     TrafficStatistic firstTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 5);
-          put("secondSection", 2);
-        }})
+        .totalHitsCount(7)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(firstTrafficStatistics);
@@ -230,9 +203,7 @@ public class AlertManagerTest {
     verify(this.eventBus, times(0)).post(any());
 
     TrafficStatistic secondTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 13);
-        }})
+        .totalHitsCount(13)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(secondTrafficStatistics);
@@ -242,16 +213,14 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.HIGH_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals((firstTrafficStatistics.totalHits() + secondTrafficStatistics.totalHits()) / 2,
+    assertEquals((float) (firstTrafficStatistics.getTotalHitsCount() + secondTrafficStatistics.getTotalHitsCount()) / 2,
         argumentCaptor.getValue().getHitsAverage(),
         0);
 
     reset(this.eventBus);
 
     TrafficStatistic thirdTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("secondSection", 1);
-        }})
+        .totalHitsCount(1)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(thirdTrafficStatistics);
@@ -260,18 +229,16 @@ public class AlertManagerTest {
     verify(this.eventBus).post(argumentCaptor.capture());
 
     assertEquals(TrafficAlert.AlertType.RECOVERED_TRAFFIC, argumentCaptor.getValue().getAlertType());
-    assertEquals((firstTrafficStatistics.totalHits()
-            + secondTrafficStatistics.totalHits()
-            + thirdTrafficStatistics.totalHits()) / 3,
+    assertEquals((float) (firstTrafficStatistics.getTotalHitsCount()
+            + secondTrafficStatistics.getTotalHitsCount()
+            + thirdTrafficStatistics.getTotalHitsCount()) / 3,
         argumentCaptor.getValue().getHitsAverage(),
         0);
 
     reset(this.eventBus);
 
     TrafficStatistic fourthTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 3);
-        }})
+        .totalHitsCount(3)
         .build();
 
     this.alertsManagerUnderTest.consumeTrafficStatistics(fourthTrafficStatistics);
@@ -280,9 +247,7 @@ public class AlertManagerTest {
     reset(this.eventBus);
 
     TrafficStatistic fifthTrafficStatistics = TrafficStatistic.builder()
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("firstSection", 20);
-        }})
+        .totalHitsCount(20)
         .build();
 
     // Total hits = 13 + 1 + 3 + 20 = 37, average = 37 / 4 < 10 then no alerts
