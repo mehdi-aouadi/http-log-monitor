@@ -7,5 +7,6 @@ public class ApplicationModule extends AbstractModule {
   protected void configure() {
     install(new EventBusModule());
     install(new ParserModule());
+    install(new FileWatcherModule());
   }
 }
