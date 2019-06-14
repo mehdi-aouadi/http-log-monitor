@@ -21,9 +21,12 @@ public class TrafficStatisticsManagerTest {
   @Mock
   private EventBus eventBus;
 
+  private int refreshInterval = 150;
+
   @Test
   public void refreshStatisticsNominalTest() {
-    TrafficStatisticsManager trafficStatisticsManager = new TrafficStatisticsManager(eventBus, 10);
+    TrafficStatisticsManager trafficStatisticsManager = new TrafficStatisticsManager(this.eventBus,
+        this.refreshInterval);
     CommonLogFormatEntry commonLogFormatEntry = CommonLogFormatEntry.builder()
         .host("localhost")
         .userRfcId("userRfcId")
@@ -36,12 +39,19 @@ public class TrafficStatisticsManagerTest {
         .size(123)
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
-    trafficStatisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
 
     TrafficStatistic trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(123)
+        .totalHitsCount(1)
+        .successRequestsCount(1)
+        .clientErrorRequestCount(0)
+        .serverErrorRequestCount(0)
         .sectionsHits(new HashMap<String, Integer>() {{
           put("pages", 1);
+        }})
+        .methodsHits(new HashMap<String, Integer>() {{
+          put("GET", 1);
         }})
         .build();
 
@@ -73,12 +83,19 @@ public class TrafficStatisticsManagerTest {
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    trafficStatisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
+        .totalHitsCount(2)
+        .successRequestsCount(2)
+        .clientErrorRequestCount(0)
+        .serverErrorRequestCount(0)
         .sectionsHits(new HashMap<String, Integer>() {{
           put("pages", 2);
+        }})
+        .methodsHits(new HashMap<String, Integer>() {{
+          put("GET", 2);
         }})
         .build();
 
@@ -110,12 +127,19 @@ public class TrafficStatisticsManagerTest {
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    trafficStatisticsManager.refreshStatistics(30);
+    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
+        .totalHitsCount(2)
+        .successRequestsCount(2)
+        .clientErrorRequestCount(0)
+        .serverErrorRequestCount(0)
         .sectionsHits(new HashMap<String, Integer>() {{
           put("pages", 1);
+        }})
+        .methodsHits(new HashMap<String, Integer>() {{
+          put("GET", 2);
         }})
         .build();
 

@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.datadog.log.CommonLogFormatEntry;
 import org.datadog.parser.ParseException;
@@ -56,7 +58,7 @@ public class TrafficStatisticsManager {
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     executor.scheduleAtFixedRate(
         statisticRefreshTimerTask,
-        0,
+        refreshPeriod,
         refreshPeriod,
         TimeUnit.SECONDS
     );
@@ -126,7 +128,10 @@ public class TrafficStatisticsManager {
             .successRequestsCount(successCount)
             .clientErrorRequestCount(clientErrorCount)
             .serverErrorRequestCount(serverErrorCount)
-            .sectionsHits(sectionsHits)
+            .sectionsHits(sectionsHits.entrySet().stream()
+                .sorted(Collections.reverseOrder())
+                .limit(5)
+                .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue())))
             .methodsHits(methodsHits)
             .build()
     );
@@ -147,7 +152,8 @@ public class TrafficStatisticsManager {
     // reception.
     CommonLogFormatEntry lastLogEntry = this.logStore.peek();
     if (lastLogEntry != null
-        && lastLogEntry.getLogDateTime().isAfter(commonLogFormatEntry.getLogDateTime())) {
+        && commonLogFormatEntry.getLogDateTime().isBefore(lastLogEntry.getLogDateTime())
+    ) {
       LOGGER.warn(
           "Common Log Format Entry Event discarded : {}. "
               + "Log date time is before the last log entry in the buffer {}.",
