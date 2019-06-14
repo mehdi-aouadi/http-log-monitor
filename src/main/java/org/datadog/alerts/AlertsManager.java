@@ -11,15 +11,11 @@ import java.time.ZonedDateTime;
 
 import lombok.NonNull;
 
+import lombok.extern.slf4j.Slf4j;
 import org.datadog.statitics.TrafficStatistic;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
+@Slf4j
 public class AlertsManager {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AlertsManager.class);
 
   private final EventBus eventBus;
   private final EvictingQueue<TrafficStatistic> trafficStatisticsQueue;
