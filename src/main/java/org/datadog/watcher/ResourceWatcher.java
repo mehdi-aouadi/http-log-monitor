@@ -14,10 +14,4 @@ public interface ResourceWatcher extends Closeable {
    */
   void run() throws IOException;
 
-  /**
-   * Stops the watcher.
-   * @throws IOException If an error occurs when closing the resource.
-   */
-  void stop() throws IOException;
-
 }
