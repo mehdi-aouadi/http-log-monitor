@@ -20,18 +20,18 @@ public class ApplicationOptions {
    * The period in seconds after which the traffic statistics are computed.
    */
   @Builder.Default
-  private int refreshFrequency = 10;
+  private int refreshFrequency = 5;
 
   /**
    * The traffic hits count threshold to trigger a traffic alert.
    */
   @Builder.Default
-  private int trafficThreshold = 100;
+  private int trafficThreshold = 200;
 
   /**
    *
    */
   @Builder.Default
-  private int thresholdAlertCycles = 4;
+  private int thresholdAlertCycles = 5;
 
 }
