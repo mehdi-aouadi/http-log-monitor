@@ -6,6 +6,8 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +58,7 @@ public class TrafficStatisticsManager {
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     executor.scheduleAtFixedRate(
         statisticRefreshTimerTask,
-        refreshPeriod,
+        0,
         refreshPeriod,
         TimeUnit.SECONDS
     );
@@ -76,7 +78,7 @@ public class TrafficStatisticsManager {
     int serverErrorCount = 0;
     Map<String, Integer> sectionsHits = new HashMap<>();
     Map<String, Integer> methodsHits = new HashMap<>();
-    Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
+    Instant maxAge = Instant.now().minusSeconds(60000);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
     while (commonLogFormatEntry != null
         && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
