@@ -6,6 +6,8 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +58,7 @@ public class TrafficStatisticsManager {
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     executor.scheduleAtFixedRate(
         statisticRefreshTimerTask,
-        refreshPeriod,
+        0,
         refreshPeriod,
         TimeUnit.SECONDS
     );

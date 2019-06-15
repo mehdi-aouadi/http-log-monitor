@@ -17,7 +17,7 @@ public class EventBusModule extends AbstractModule {
     bind(EventBus.class).toInstance(eventBus);
     bindListener(Matchers.any(), new TypeListener() {
       public <I> void hear(TypeLiteral<I> typeLiteral, TypeEncounter<I> typeEncounter) {
-        typeEncounter.register((InjectionListener<I>) i -> eventBus.register(i));
+        typeEncounter.register((InjectionListener<I>) eventBus::register);
       }
     });
   }
