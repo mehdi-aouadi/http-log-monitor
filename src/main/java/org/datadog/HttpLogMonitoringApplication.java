@@ -3,6 +3,8 @@ package org.datadog;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.WatchService;
 
@@ -11,6 +13,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.datadog.alerts.AlertsManager;
 import org.datadog.cli.ApplicationOptions;
+import org.datadog.gui.ConsoleGui;
 import org.datadog.modules.ApplicationModule;
 import org.datadog.parser.CommonLogFormatHandlerImpl;
 import org.datadog.parser.OutputHandler;
@@ -80,6 +83,17 @@ public class HttpLogMonitoringApplication {
         Paths.get(applicationOptions.getFilePath()),
         stringOutputHandler
         );
+
+    new Thread(() -> {
+      ConsoleGui gui = new ConsoleGui();
+      eventBus.register(gui);
+      try {
+        gui.start(() -> System.exit(0));
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+        System.exit(1);
+      }
+    }, "ui-thread").start();
 
     fileWatcher.run();
   }
