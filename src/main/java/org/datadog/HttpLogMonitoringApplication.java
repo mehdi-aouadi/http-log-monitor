@@ -70,7 +70,7 @@ public class HttpLogMonitoringApplication {
     eventBus.register(trafficStatisticsManager);
 
     AlertsManager alertsManager = new AlertsManager(eventBus,
-        applicationOptions.getThresholdMonitoringDuration(),
+        applicationOptions.getThresholdAlertCycles(),
         applicationOptions.getTrafficThreshold());
 
     eventBus.register(alertsManager);

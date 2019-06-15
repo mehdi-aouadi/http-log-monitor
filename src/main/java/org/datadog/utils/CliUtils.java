@@ -2,6 +2,7 @@ package org.datadog.utils;
 
 import java.nio.file.Paths;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.cli.CommandLine;
@@ -16,10 +17,15 @@ import org.datadog.cli.ApplicationOptions;
 @Slf4j
 public class CliUtils {
 
-  private static final String FILE_PATH_OPTION = "log-path";
-  private static final String REFRESH_FREQUENCY_OPTION = "refresh-frequency";
-  private static final String TRAFFIC_THRESHOLD_OPTION = "traffic-threshold";
-  private static final String THRESHOLD_DURATION_OPTION = "threshold-duration";
+  static final String FILE_PATH_LONG_OPTION = "log-file-path";
+  static final String REFRESH_FREQUENCY_LONG_OPTION = "refresh-frequency";
+  static final String HITS_THRESHOLD_LONG_OPTION = "hits-threshold";
+  static final String THRESHOLD_CYCLES_LONG_OPTION = "threshold-cycles";
+
+  static final String FILE_PATH_SHORT_OPTION = "f";
+  static final String REFRESH_FREQUENCY_SHORT_OPTION = "r";
+  static final String HITS_THRESHOLD_SHORT_OPTION = "t";
+  static final String THRESHOLD_CYCLES_SHORT_OPTION = "c";
 
   /**
    * Validates the {@link org.datadog.HttpLogMonitoringApplication} options.
@@ -29,7 +35,7 @@ public class CliUtils {
    */
   public static ApplicationOptions validateArguments(CommandLine commandLine) {
     ApplicationOptions defaults = ApplicationOptions.builder().build();
-    String filePath = commandLine.getOptionValue(FILE_PATH_OPTION);
+    String filePath = commandLine.getOptionValue(FILE_PATH_LONG_OPTION);
     if (filePath != null) {
       if (!Paths.get(filePath).toFile().isFile()) {
         log.error("{} no such file.", filePath);
@@ -42,24 +48,24 @@ public class CliUtils {
 
     int refreshFrequency = retrieveIntegerOption(defaults.getRefreshFrequency(),
         commandLine,
-        REFRESH_FREQUENCY_OPTION,
+        REFRESH_FREQUENCY_LONG_OPTION,
         1);
     int trafficThreshold = retrieveIntegerOption(
         defaults.getTrafficThreshold(),
         commandLine,
-        TRAFFIC_THRESHOLD_OPTION,
+        HITS_THRESHOLD_LONG_OPTION,
         1);
     int thresholdDuration = retrieveIntegerOption(
-        defaults.getThresholdMonitoringDuration(),
+        defaults.getThresholdAlertCycles(),
         commandLine,
-        THRESHOLD_DURATION_OPTION,
+        THRESHOLD_CYCLES_LONG_OPTION,
         1);
 
     return ApplicationOptions.builder()
         .filePath(filePath)
         .refreshFrequency(refreshFrequency)
         .trafficThreshold(trafficThreshold)
-        .thresholdMonitoringDuration(thresholdDuration)
+        .thresholdAlertCycles(thresholdDuration)
         .build();
   }
 
@@ -76,20 +82,21 @@ public class CliUtils {
     return parser.parse(options, args);
   }
 
-  private static Options getOptions() {
+  @VisibleForTesting
+  static Options getOptions() {
     ApplicationOptions defaults = ApplicationOptions.builder().build();
     Options options = new Options();
-    options.addOption("f", FILE_PATH_OPTION, true,
+    options.addOption(FILE_PATH_SHORT_OPTION, FILE_PATH_LONG_OPTION, true,
         "The log file absolute path, default " + defaults.getFilePath());
-    options.addOption("r", REFRESH_FREQUENCY_OPTION, true,
+    options.addOption(REFRESH_FREQUENCY_SHORT_OPTION, REFRESH_FREQUENCY_LONG_OPTION, true,
         "The reporting refresh frequency in seconds, default "
             + defaults.getRefreshFrequency());
-    options.addOption("t", TRAFFIC_THRESHOLD_OPTION, true,
-        "Traffic threshold in hits average during the monitornig duration, default "
+    options.addOption(HITS_THRESHOLD_SHORT_OPTION, HITS_THRESHOLD_LONG_OPTION, true,
+        "Hits threshold on average during the monitoring duration, default "
             + defaults.getTrafficThreshold());
-    options.addOption("d", THRESHOLD_DURATION_OPTION, true,
-        "Number of refresh ater which traffic threshold must be checked, default "
-            + defaults.getThresholdMonitoringDuration());
+    options.addOption(THRESHOLD_CYCLES_SHORT_OPTION, THRESHOLD_CYCLES_LONG_OPTION, true,
+        "Number of refresh cycles after which traffic threshold must be checked, default "
+            + defaults.getThresholdAlertCycles());
     return options;
   }
 

@@ -78,7 +78,7 @@ public class TrafficStatisticsManager {
     int serverErrorCount = 0;
     Map<String, Integer> sectionsHits = new HashMap<>();
     Map<String, Integer> methodsHits = new HashMap<>();
-    Instant maxAge = Instant.now().minusSeconds(60000);
+    Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
     while (commonLogFormatEntry != null
         && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
