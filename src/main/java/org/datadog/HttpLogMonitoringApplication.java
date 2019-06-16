@@ -78,11 +78,14 @@ public class HttpLogMonitoringApplication {
 
     eventBus.register(alertsManager);
 
-    FileWatcherImpl fileWatcher = new FileWatcherImpl(
-        injector.getInstance(WatchService.class),
-        Paths.get(applicationOptions.getFilePath()),
-        stringOutputHandler
-        );
+    String filePath = applicationOptions.getFilePath();
+    new Thread(() -> {
+      new FileWatcherImpl(
+          injector.getInstance(WatchService.class),
+          Paths.get(filePath),
+          stringOutputHandler
+      ).run();
+    }, "file-watcher-thread").start();
 
     new Thread(() -> {
       ConsoleGui gui = new ConsoleGui();
@@ -94,8 +97,6 @@ public class HttpLogMonitoringApplication {
         System.exit(1);
       }
     }, "ui-thread").start();
-
-    fileWatcher.run();
   }
 
 }

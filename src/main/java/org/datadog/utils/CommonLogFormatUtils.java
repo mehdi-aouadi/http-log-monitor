@@ -1,5 +1,10 @@
 package org.datadog.utils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,9 +54,9 @@ public class CommonLogFormatUtils {
    * Retrieves the web site section from a resource url.
    * A section is defined as being what's before the second '/' in a URL.
    *  i.e. the section for "/pages/create' is "pages")
-   * @param resource
-   * @return
-   * @throws ParseException
+   * @param resource the full resource url value.
+   * @return the section name.
+   * @throws ParseException if the section is not present or the url has a bad format.
    */
   public static String retrieveSection(String resource) throws ParseException {
     Matcher sectionMatcher = SECTION_PATTERN.matcher(resource);
@@ -62,6 +67,39 @@ public class CommonLogFormatUtils {
           String.format("Invalid resource url. Unable to retrieve section from %s", resource)
       );
     }
+  }
+
+  /**
+   * Returns {@link List} containing a subset of {@link Map} with the highest values.
+   * @param map The map to process.
+   * @param limit The number of highest values to be returned.
+   * @param <K> The {@link Map} key type.
+   * @param <V> The {@link Map} value type.
+   * @return A {@link List} containing the highest limit values.
+   */
+  public static <K, V extends Comparable<? super V>> List<Map.Entry<K, V>> findGreatestValues(
+      Map<K, V> map,
+      int limit) {
+    Comparator<? super Map.Entry<K, V>> comparator
+        = (Comparator<Map.Entry<K, V>>) (firstEntry, secondEntry) -> {
+          V firstValue = firstEntry.getValue();
+          V secondValue = secondEntry.getValue();
+          return firstValue.compareTo(secondValue);
+        };
+    PriorityQueue<Map.Entry<K, V>> highest;
+    highest = new PriorityQueue<>(limit, comparator);
+    for (Map.Entry<K, V> entry : map.entrySet()) {
+      highest.offer(entry);
+      while (highest.size() > limit) {
+        highest.poll();
+      }
+    }
+
+    List<Map.Entry<K, V>> result = new ArrayList<>();
+    while (highest.size() > 0) {
+      result.add(highest.poll());
+    }
+    return result;
   }
 
 }

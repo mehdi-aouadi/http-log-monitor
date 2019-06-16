@@ -6,23 +6,19 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.datadog.log.CommonLogFormatEntry;
 import org.datadog.parser.ParseException;
+import org.datadog.utils.CommonLogFormatUtils;
 
 import static org.datadog.utils.CommonLogFormatUtils.retrieveSection;
 
@@ -37,6 +33,7 @@ public class TrafficStatisticsManager {
 
   private final EventBus eventBus;
   private final Queue<CommonLogFormatEntry> logStore = new ConcurrentLinkedQueue<>();
+  private Instant maxAge = Instant.now();
 
   /**
    * Creates a consumer of events of type {@link CommonLogFormatEntry}.
@@ -49,28 +46,25 @@ public class TrafficStatisticsManager {
   @Inject
   public TrafficStatisticsManager(EventBus eventBus, int refreshPeriod) {
     this.eventBus = eventBus;
-    TimerTask statisticRefreshTimerTask = new TimerTask() {
-      @Override
+    Executor executor = Executors.newCachedThreadPool();
+    Timer timer = new Timer();
+    timer.scheduleAtFixedRate(new TimerTask() {
       public void run() {
-        refreshStatistics(refreshPeriod);
+        executor.execute(() -> {
+          maxAge = Instant.now().plusSeconds(refreshPeriod);
+          refreshStatistics(maxAge);
+        });
       }
-    };
-    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    executor.scheduleAtFixedRate(
-        statisticRefreshTimerTask,
-        0,
-        refreshPeriod,
-        TimeUnit.SECONDS
-    );
+    }, 0, refreshPeriod * 1000);
   }
 
   /**
    * Processes all the {@link CommonLogFormatEntry} present in the buffer whose log date time
    *  is "timeSecondsInterval" seconds before now and produces a new {@link TrafficStatistic}.
-   * @param timeSecondsInterval time interval second number.
+   * @param maxAge the maximum log date time to process from the buffer.
    */
   @VisibleForTesting
-  public void refreshStatistics(int timeSecondsInterval) {
+  public void refreshStatistics(Instant maxAge) {
     long trafficSize = 0;
     int totalHits = 0;
     int successCount = 0;
@@ -78,10 +72,9 @@ public class TrafficStatisticsManager {
     int serverErrorCount = 0;
     Map<String, Integer> sectionsHits = new HashMap<>();
     Map<String, Integer> methodsHits = new HashMap<>();
-    Instant maxAge = Instant.now().minusSeconds(timeSecondsInterval);
     CommonLogFormatEntry commonLogFormatEntry = logStore.poll();
     while (commonLogFormatEntry != null
-        && commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
+        && !commonLogFormatEntry.getLogDateTime().toInstant().isAfter(maxAge)) {
       trafficSize += commonLogFormatEntry.getSize();
       totalHits++;
       if (commonLogFormatEntry.getStatus() >= 200
@@ -114,13 +107,6 @@ public class TrafficStatisticsManager {
       commonLogFormatEntry = this.logStore.poll();
     }
 
-    if (!this.logStore.isEmpty()) {
-      log.warn("Some Common Log Format Entry Events have not been processed and will be "
-              + "discarded : {}",
-          Arrays.asList(this.logStore));
-      this.logStore.clear();
-    }
-
     this.eventBus.post(
         TrafficStatistic.builder()
             .totalTrafficSize(trafficSize)
@@ -128,10 +114,7 @@ public class TrafficStatisticsManager {
             .successRequestsCount(successCount)
             .clientErrorRequestCount(clientErrorCount)
             .serverErrorRequestCount(serverErrorCount)
-            .sectionsHits(sectionsHits.entrySet().stream()
-                .sorted(Collections.reverseOrder())
-                .limit(5)
-                .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue())))
+            .sectionsHits(CommonLogFormatUtils.findGreatestValues(sectionsHits, 5))
             .methodsHits(methodsHits)
             .build()
     );

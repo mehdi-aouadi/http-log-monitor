@@ -1,6 +1,7 @@
 package org.datadog.watcher;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
@@ -11,7 +12,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import org.datadog.parser.OutputHandler;
 import org.junit.Before;
@@ -44,11 +45,13 @@ public class FileWatcherTest {
   @Mock
   private FileSystemProvider fileSystemProviderMock;
   @Mock
+  private File fileMock;
+  @Mock
   private WatchKey watchKeyMock;
   @Mock
   private WatchEvent<Path> pathChangedEvent;
   @Mock
-  private OutputHandler outputHandlerMock;
+  private OutputHandler<String> outputHandlerMock;
 
   private FileWatcherImpl fileWatcherUnderTest;
 
@@ -61,28 +64,25 @@ public class FileWatcherTest {
   private final String fifthLogLine = "Fifth Log Line";
   private final String sixthLogLine = "Sixth Log Line";
 
-  private final String initialFileContent = new StringBuilder(firstLineToSkip)
-      .append(System.lineSeparator())
-      .append(secondLineToSkip)
-      .toString();
+  private final String initialFileContent = firstLineToSkip +
+      System.lineSeparator() +
+      secondLineToSkip;
 
-  private final String firstFileAddition = new StringBuilder(this.initialFileContent)
-      .append(System.lineSeparator())
-      .append(this.firstLogLine)
-      .append(System.lineSeparator())
-      .append(this.secondLogLine)
-      .append(System.lineSeparator())
-      .append(this.thirdLogLine)
-      .toString();
+  private final String firstFileAddition = this.initialFileContent +
+      System.lineSeparator() +
+      this.firstLogLine +
+      System.lineSeparator() +
+      this.secondLogLine +
+      System.lineSeparator() +
+      this.thirdLogLine;
 
-  private final String SecondFileAddition = new StringBuilder(this.firstFileAddition)
-      .append(System.lineSeparator())
-      .append(this.fourthLogLine)
-      .append(System.lineSeparator())
-      .append(this.fifthLogLine)
-      .append(System.lineSeparator())
-      .append(this.sixthLogLine)
-      .toString();
+  private final String SecondFileAddition = this.firstFileAddition +
+      System.lineSeparator() +
+      this.fourthLogLine +
+      System.lineSeparator() +
+      this.fifthLogLine +
+      System.lineSeparator() +
+      this.sixthLogLine;
 
   @Before
   public void init() throws IOException, InterruptedException {
@@ -90,6 +90,13 @@ public class FileWatcherTest {
     when(this.absolutePathMock.getParent()).thenReturn(this.parentPathMock);
     when(this.pathMock.getFileSystem()).thenReturn(this.fileSystemMock);
     when(this.fileSystemMock.provider()).thenReturn(this.fileSystemProviderMock);
+    when(this.pathMock.toFile()).thenReturn(this.fileMock);
+    when(this.fileMock.length()).thenReturn(
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 3),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4)
+        + (long) (this.firstLogLine.length() + this.secondLogLine.length() + this.thirdLogLine.length() + 6)
+    );
     when(this.pathMock.getFileName()).thenReturn(this.pathMock);
 
     InputStream initialInputStream = createInputStream(this.initialFileContent);
@@ -106,15 +113,21 @@ public class FileWatcherTest {
     verify(parentPathMock).register(watchServiceMock, StandardWatchEventKinds.ENTRY_MODIFY);
 
     when(this.pathChangedEvent.context()).thenReturn(this.pathMock);
-    when(this.watchKeyMock.pollEvents()).thenReturn(Arrays.asList(pathChangedEvent));
+    when(this.watchKeyMock.pollEvents()).thenReturn(Collections.singletonList(pathChangedEvent));
     when(this.watchServiceMock.take()).thenReturn(this.watchKeyMock);
 
   }
 
   @Test
-  public void fileWatcherTest() throws InterruptedException, IOException {
+  public void fileWatcherTest() {
     this.fileWatcherUnderTest.watchFile();
     ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+    verify(this.outputHandlerMock, times(0)).process(argumentCaptor.capture());
+
+    reset(this.outputHandlerMock);
+
+    this.fileWatcherUnderTest.watchFile();
+    argumentCaptor = ArgumentCaptor.forClass(String.class);
     verify(this.outputHandlerMock, times(3)).process(argumentCaptor.capture());
 
     assertTrue(argumentCaptor.getAllValues().contains(firstLogLine));

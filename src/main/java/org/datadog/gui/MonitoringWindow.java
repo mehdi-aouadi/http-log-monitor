@@ -70,12 +70,12 @@ public class MonitoringWindow extends BasicWindow {
     trafficStatisticsPanel.addComponent(new Label("Total Bytes Transferred: "
         + trafficStatistic.getTotalTrafficSize()));
     trafficStatisticsPanel.addComponent(new Label("\nHits By Section").addStyle(SGR.BOLD));
-    trafficStatistic.getSectionsHits().entrySet()
+    trafficStatistic.getSectionsHits()
         .forEach(entry ->
             trafficStatisticsPanel.addComponent(
                 new Label(entry.getKey() + " " + entry.getValue())
             )
-    );
+      );
     trafficStatisticsPanel.addComponent(new Label("\nHits By Method").addStyle(SGR.BOLD));
     trafficStatistic.getMethodsHits().entrySet().stream()
         .sorted(Collections.reverseOrder(comparingByValue()))
