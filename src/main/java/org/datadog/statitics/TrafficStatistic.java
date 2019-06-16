@@ -1,5 +1,6 @@
 package org.datadog.statitics;
 
+import java.util.List;
 import java.util.Map;
 
 import lombok.Builder;
@@ -14,7 +15,7 @@ public class TrafficStatistic {
   private final int successRequestsCount;
   private final int clientErrorRequestCount;
   private final int serverErrorRequestCount;
-  Map<String, Integer> sectionsHits;
+  List<Map.Entry<String, Integer>> sectionsHits;
   Map<String, Integer> methodsHits;
 
 }

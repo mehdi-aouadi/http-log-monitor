@@ -33,8 +33,9 @@ public class FileWatcherImpl implements ResourceWatcher {
   private WatchService watchService;
   private Path filePath;
   private OutputHandler<String> outputHandler;
-  private int cursorIndex = 0;
+  private long fileCursor = 0L;
   private final AtomicBoolean running = new AtomicBoolean(false);
+  private BufferedReader bufferedReader;
 
   @Inject
   public FileWatcherImpl(@NonNull WatchService watchService,
@@ -48,15 +49,7 @@ public class FileWatcherImpl implements ResourceWatcher {
       filePath.toAbsolutePath().getParent().register(
           this.watchService, StandardWatchEventKinds.ENTRY_MODIFY
       );
-
-      try (BufferedReader bufferedReader
-               = Files.newBufferedReader(this.filePath, Charset.defaultCharset())) {
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-          this.cursorIndex += line.length() + System.lineSeparator().length();
-        }
-      }
-
+      this.fileCursor = this.filePath.toFile().length();
     } catch (IOException exception) {
       log.error("Error during FileWatcher initialization.", exception);
     }
@@ -88,15 +81,14 @@ public class FileWatcherImpl implements ResourceWatcher {
         WatchEvent<Path> pathEvent = (WatchEvent<Path>) watchEvent;
         Path path = pathEvent.context();
         if (path.equals(this.filePath.getFileName())) {
-          try (BufferedReader bufferedReader =
-                   Files.newBufferedReader(this.filePath, Charset.defaultCharset())) {
-            String line;
-            bufferedReader.skip(this.cursorIndex);
-            while ((line = bufferedReader.readLine()) != null) {
-              this.cursorIndex += line.length() + System.lineSeparator().length();
-              this.outputHandler.process(line);
-            }
+          this.bufferedReader = Files.newBufferedReader(this.filePath, Charset.defaultCharset());
+          this.bufferedReader.skip(this.fileCursor);
+          String line;
+          while ((line = this.bufferedReader.readLine()) != null) {
+            this.outputHandler.process(line);
           }
+          this.fileCursor = this.filePath.toFile().length();
+          this.bufferedReader.close();
         }
       }
       watchKey.reset();

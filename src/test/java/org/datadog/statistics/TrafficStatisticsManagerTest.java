@@ -9,7 +9,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.mockito.Mockito.verify;
@@ -39,7 +42,7 @@ public class TrafficStatisticsManagerTest {
         .size(123)
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
-    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
+    trafficStatisticsManager.refreshStatistics(Instant.now().plusSeconds(1));
 
     TrafficStatistic trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(123)
@@ -47,9 +50,7 @@ public class TrafficStatisticsManagerTest {
         .successRequestsCount(1)
         .clientErrorRequestCount(0)
         .serverErrorRequestCount(0)
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("pages", 1);
-        }})
+        .sectionsHits(Arrays.asList(new AbstractMap.SimpleEntry<>("pages", 1)))
         .methodsHits(new HashMap<String, Integer>() {{
           put("GET", 1);
         }})
@@ -83,7 +84,7 @@ public class TrafficStatisticsManagerTest {
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
+    trafficStatisticsManager.refreshStatistics(Instant.now().plusSeconds(1));
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
@@ -91,9 +92,7 @@ public class TrafficStatisticsManagerTest {
         .successRequestsCount(2)
         .clientErrorRequestCount(0)
         .serverErrorRequestCount(0)
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("pages", 2);
-        }})
+        .sectionsHits(Arrays.asList(new AbstractMap.SimpleEntry<>("pages", 2)))
         .methodsHits(new HashMap<String, Integer>() {{
           put("GET", 2);
         }})
@@ -127,7 +126,7 @@ public class TrafficStatisticsManagerTest {
         .build();
     trafficStatisticsManager.consumeClfEvent(commonLogFormatEntry);
 
-    trafficStatisticsManager.refreshStatistics(this.refreshInterval);
+    trafficStatisticsManager.refreshStatistics(Instant.now().plusSeconds(1));
 
     trafficStatistic = TrafficStatistic.builder()
         .totalTrafficSize(300)
@@ -135,9 +134,7 @@ public class TrafficStatisticsManagerTest {
         .successRequestsCount(2)
         .clientErrorRequestCount(0)
         .serverErrorRequestCount(0)
-        .sectionsHits(new HashMap<String, Integer>() {{
-          put("pages", 1);
-        }})
+        .sectionsHits(Arrays.asList(new AbstractMap.SimpleEntry<>("pages", 1)))
         .methodsHits(new HashMap<String, Integer>() {{
           put("GET", 2);
         }})
