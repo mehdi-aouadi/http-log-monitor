@@ -18,6 +18,7 @@ import java.util.Collections;
 
 import org.datadog.alerts.TrafficAlert;
 import org.datadog.statitics.TrafficStatistic;
+import org.datadog.utils.GuiFormatUtils;
 
 import static java.util.Map.Entry.comparingByValue;
 
@@ -42,7 +43,6 @@ public class MonitoringWindow extends BasicWindow {
     Panel rootPanel = new Panel();
     rootPanel.addComponent(mainPanel);
     Panel statusPanel = new Panel();
-    statusPanel.addComponent(new Label("Press '^C' to exit and return to terminal window!"));
     rootPanel.addComponent(statusPanel);
     setComponent(rootPanel);
     setHints(Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS));
@@ -56,8 +56,11 @@ public class MonitoringWindow extends BasicWindow {
 
   void handleTrafficStatistics(TrafficStatistic trafficStatistic) {
     trafficStatisticsPanel.removeAllComponents();
-    trafficStatisticsPanel.addComponent(new Label("¤ Monitoring started "
-        + Duration.between(monitoringStartingTime, Instant.now())));
+    trafficStatisticsPanel.addComponent(new Label("Monitoring started "
+        + Duration.between(monitoringStartingTime, Instant.now()).withNanos(0).toString()
+        .substring(2)
+        .replaceAll("(\\d[HMS])(?!$)", "$1 ")
+        .toLowerCase() + " ago."));
     trafficStatisticsPanel.addComponent(new Label("\nSummary").addStyle(SGR.BOLD));
     trafficStatisticsPanel.addComponent(new Label("Total Requests: "
         + trafficStatistic.getTotalHitsCount()));
@@ -68,7 +71,7 @@ public class MonitoringWindow extends BasicWindow {
     trafficStatisticsPanel.addComponent(new Label("Server Error request: "
         + trafficStatistic.getServerErrorRequestCount()));
     trafficStatisticsPanel.addComponent(new Label("Total Bytes Transferred: "
-        + trafficStatistic.getTotalTrafficSize()));
+        + GuiFormatUtils.humanReadableByteCount(trafficStatistic.getTotalTrafficSize())));
     trafficStatisticsPanel.addComponent(new Label("\nHits By Section").addStyle(SGR.BOLD));
     trafficStatistic.getSectionsHits()
         .forEach(entry ->
@@ -92,11 +95,11 @@ public class MonitoringWindow extends BasicWindow {
     for (TrafficAlert trafficAlert : trafficAlertsBuffer) {
       Label label = new Label(trafficAlert.getMessage()).addStyle(SGR.BOLD);
       if (trafficAlert.getAlertType() == TrafficAlert.AlertType.HIGH_TRAFFIC) {
-        label.setForegroundColor(TextColor.ANSI.RED);
+        label.setForegroundColor(TextColor.Factory.fromString("#5e0000"));
       } else {
-        label.setForegroundColor(TextColor.ANSI.GREEN);
-        label.setText(label.getText() + "\n ");
+        label.setForegroundColor(TextColor.Factory.fromString("#003c00"));
       }
+      label.setText(label.getText() + "\n ");
       trafficAlertsPanel.addComponent(label);
     }
   }

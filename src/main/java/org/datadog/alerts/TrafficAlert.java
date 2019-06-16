@@ -15,7 +15,7 @@ public class TrafficAlert {
   @Getter
   @RequiredArgsConstructor
   public enum AlertType {
-    HIGH_TRAFFIC("High traffic generated an alert - hits on average = {0}, triggered at  {1}"),
+    HIGH_TRAFFIC("High traffic detected - hits on average = {0}, triggered at  {1}"),
     RECOVERED_TRAFFIC("High traffic recovered - hits on average = {0}, triggered at {1}");
 
     /**
