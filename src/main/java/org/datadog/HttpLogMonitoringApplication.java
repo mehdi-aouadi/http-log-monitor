@@ -4,7 +4,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.WatchService;
 
@@ -54,8 +53,8 @@ public class HttpLogMonitoringApplication {
       try {
         applicationOptions = validateArguments(commandLine);
       } catch (Exception exception) {
-        log.error("Error validating the option values.", exception);
-        System.out.println("Invalid option value(s).");
+        log.error("Error validating the options values.", exception);
+        System.out.println("Invalid option(s) value(s).");
         printApplicationHelp();
         System.exit(1);
       }
@@ -88,19 +87,20 @@ public class HttpLogMonitoringApplication {
 
     eventBus.register(alertsManager);
 
-    String filePath = applicationOptions.getFilePath();
+    final String filePath = applicationOptions.getFilePath();
     new Thread(() -> new FileWatcherImpl(
         injector.getInstance(WatchService.class),
         Paths.get(filePath),
         stringOutputHandler
     ).run(), "file-watcher-thread").start();
 
+    final ApplicationOptions appOptions = applicationOptions;
     new Thread(() -> {
-      ConsoleGui gui = new ConsoleGui();
+      ConsoleGui gui = new ConsoleGui(appOptions);
       eventBus.register(gui);
       try {
         gui.start(() -> System.exit(0));
-      } catch (IOException e) {
+      } catch (Exception e) {
         log.error(e.getMessage(), e);
         System.exit(1);
       }

@@ -11,13 +11,17 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import java.io.IOException;
 import org.datadog.alerts.TrafficAlert;
+import org.datadog.cli.ApplicationOptions;
 import org.datadog.statitics.TrafficStatistic;
 
 
 public class ConsoleGui {
 
-  private final MonitoringWindow monitoringWindow = new MonitoringWindow();
+  private final MonitoringWindow monitoringWindow;
 
+  public ConsoleGui(ApplicationOptions applicationOptions) {
+    this.monitoringWindow = new MonitoringWindow(applicationOptions);
+  }
   @Subscribe
   public void handleTrafficStatistics(TrafficStatistic trafficStatistic) {
     monitoringWindow.handleTrafficStatistics(trafficStatistic);
