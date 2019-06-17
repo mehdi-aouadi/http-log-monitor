@@ -23,8 +23,8 @@ public class CommonLogFormatHandlerImpl implements OutputHandler<String> {
   }
 
   /**
-   *
-   * @param line
+   * Processes a log line and generates a  {@link CommonLogFormatEntry}.
+   * @param line The log line from the log file.
    */
   @Override
   public void process(String line) {
