@@ -37,10 +37,13 @@ public class HttpLogMonitoringApplication {
    * <ul>
    *   <li>Creates a default {@link ApplicationOptions} with default values.</li>
    *   <li>Parses the user entered option values.</li>
-   *   <li>Validates the user entered options values and keeps default ones if not presents.</li>
+   *   <li>Validates the user entered options values and keeps default
+   *   ones if an option is not present.</li>
    *   <li>Initializes a {@link OutputHandler}.</li>
    *   <li>Initializes a {@link TrafficStatisticsManager}.</li>
-   *   <li>Initializes a {@link org.datadog.watcher.ResourceWatcher}.</li>
+   *   <li>Initializes a {@link AlertsManager}.</li>
+   *   <li>Initializes a {@link org.datadog.watcher.ResourceWatcher} in a separate thread.</li>
+   *   <li>Initializes a {@link ConsoleGui} in a separate thread.</li>
    * </ul>
    * @param args The monitoring option values as described in {@link ApplicationOptions}
    */
@@ -48,7 +51,14 @@ public class HttpLogMonitoringApplication {
     ApplicationOptions applicationOptions = ApplicationOptions.builder().build();
     try {
       CommandLine commandLine = parseArguments(args);
-      applicationOptions = validateArguments(commandLine);
+      try {
+        applicationOptions = validateArguments(commandLine);
+      } catch (Exception exception) {
+        log.error("Error validating the option values.", exception);
+        System.out.println("Invalid option value(s).");
+        printApplicationHelp();
+        System.exit(1);
+      }
       log.info("Initializing a HTTP Log Monitor with the following options {}", applicationOptions);
     } catch (ParseException exception) {
       log.error("Error when parsing application options.", exception);
@@ -73,19 +83,17 @@ public class HttpLogMonitoringApplication {
     eventBus.register(trafficStatisticsManager);
 
     AlertsManager alertsManager = new AlertsManager(eventBus,
-        applicationOptions.getThresholdAlertCycles(),
+        applicationOptions.getThresholdRefreshCycles(),
         applicationOptions.getTrafficThreshold());
 
     eventBus.register(alertsManager);
 
     String filePath = applicationOptions.getFilePath();
-    new Thread(() -> {
-      new FileWatcherImpl(
-          injector.getInstance(WatchService.class),
-          Paths.get(filePath),
-          stringOutputHandler
-      ).run();
-    }, "file-watcher-thread").start();
+    new Thread(() -> new FileWatcherImpl(
+        injector.getInstance(WatchService.class),
+        Paths.get(filePath),
+        stringOutputHandler
+    ).run(), "file-watcher-thread").start();
 
     new Thread(() -> {
       ConsoleGui gui = new ConsoleGui();

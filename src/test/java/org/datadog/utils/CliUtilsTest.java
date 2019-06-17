@@ -108,4 +108,70 @@ public class CliUtilsTest {
         applicationOptions);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void badZeroRefreshValueTest() throws ParseException {
+    int refresh = 0;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + REFRESH_FREQUENCY_LONG_OPTION + "=" + refresh
+        }
+    );
+    validateArguments(commandLine);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void badNegativeRefreshValueTest() throws ParseException {
+    int refresh = -2;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + REFRESH_FREQUENCY_LONG_OPTION + "=" + refresh
+        }
+    );
+    validateArguments(commandLine);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void badZeroThresholdValueTest() throws ParseException {
+    int threshold = 0;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + HITS_THRESHOLD_LONG_OPTION + "=" + threshold
+        }
+    );
+    validateArguments(commandLine);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void badNegativeThresholdValueTest() throws ParseException {
+    int threshold = -12;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + HITS_THRESHOLD_LONG_OPTION + "=" + threshold
+        }
+    );
+    validateArguments(commandLine);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void badZeroThresholdRefreshCyclesValueTest() throws ParseException {
+    int thresholdCycles = 0;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + THRESHOLD_CYCLES_LONG_OPTION + "=" + thresholdCycles
+        }
+    );
+    validateArguments(commandLine);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void badNegativeThresholdRefreshCyclesValueTest() throws ParseException {
+    int thresholdCycles = -12;
+    CommandLine commandLine = parseArguments(
+        new String[] {
+            "-" + THRESHOLD_CYCLES_LONG_OPTION + "=" + thresholdCycles
+        }
+    );
+    validateArguments(commandLine);
+  }
+
 }

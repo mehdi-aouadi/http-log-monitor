@@ -55,8 +55,8 @@ public class CliUtils {
         commandLine,
         HITS_THRESHOLD_LONG_OPTION,
         1);
-    int thresholdDuration = retrieveIntegerOption(
-        defaults.getThresholdAlertCycles(),
+    int thresholdRefreshCycles = retrieveIntegerOption(
+        defaults.getThresholdRefreshCycles(),
         commandLine,
         THRESHOLD_CYCLES_LONG_OPTION,
         1);
@@ -65,7 +65,7 @@ public class CliUtils {
         .filePath(filePath)
         .refreshFrequency(refreshFrequency)
         .trafficThreshold(trafficThreshold)
-        .thresholdAlertCycles(thresholdDuration)
+        .thresholdRefreshCycles(thresholdRefreshCycles)
         .build();
   }
 
@@ -96,7 +96,7 @@ public class CliUtils {
             + defaults.getTrafficThreshold());
     options.addOption(THRESHOLD_CYCLES_SHORT_OPTION, THRESHOLD_CYCLES_LONG_OPTION, true,
         "Number of refresh cycles after which traffic threshold must be checked, default "
-            + defaults.getThresholdAlertCycles());
+            + defaults.getThresholdRefreshCycles());
     return options;
   }
 

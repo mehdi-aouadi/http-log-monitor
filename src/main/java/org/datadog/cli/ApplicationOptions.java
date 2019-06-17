@@ -32,6 +32,6 @@ public class ApplicationOptions {
    *
    */
   @Builder.Default
-  private int thresholdAlertCycles = 6;
+  private int thresholdRefreshCycles = 6;
 
 }

@@ -22,7 +22,7 @@ import org.datadog.utils.GuiFormatUtils;
 
 import static java.util.Map.Entry.comparingByValue;
 
-public class MonitoringWindow extends BasicWindow {
+class MonitoringWindow extends BasicWindow {
 
   private final Panel trafficStatisticsPanel = new Panel();
   private final Panel trafficAlertsPanel = new Panel();
@@ -65,11 +65,17 @@ public class MonitoringWindow extends BasicWindow {
     trafficStatisticsPanel.addComponent(new Label("Total Requests: "
         + trafficStatistic.getTotalHitsCount()));
     trafficStatisticsPanel.addComponent(new Label("Success Requests: "
-        + trafficStatistic.getSuccessRequestsCount()));
+        + trafficStatistic.getSuccessRequestsCount()).setForegroundColor(
+            TextColor.Factory.fromString("#003c00"))
+    );
     trafficStatisticsPanel.addComponent(new Label("Client Error request: "
-        + trafficStatistic.getClientErrorRequestCount()));
+        + trafficStatistic.getClientErrorRequestCount()).setForegroundColor(
+        TextColor.Factory.fromString("#5e0000"))
+    );
     trafficStatisticsPanel.addComponent(new Label("Server Error request: "
-        + trafficStatistic.getServerErrorRequestCount()));
+        + trafficStatistic.getServerErrorRequestCount()).setForegroundColor(
+        TextColor.Factory.fromString("#cc0000"))
+    );
     trafficStatisticsPanel.addComponent(new Label("Total Bytes Transferred: "
         + GuiFormatUtils.humanReadableByteCount(trafficStatistic.getTotalTrafficSize())));
     trafficStatisticsPanel.addComponent(new Label("\nHits By Section").addStyle(SGR.BOLD));

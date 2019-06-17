@@ -28,6 +28,12 @@ public class ConsoleGui {
     monitoringWindow.handleTrafficAlert(trafficAlert);
   }
 
+  /**
+   * Runs the Console GUI.
+   * @param exitCallback the {@link Runnable} to execute when when closing the Console Gui.
+   * @throws IOException If there was an underlying I/O error when querying the size of the
+   *     terminal.
+   */
   public void start(Runnable exitCallback) throws IOException {
     Terminal terminal = new DefaultTerminalFactory().createTerminal();
     try (Screen screen = new TerminalScreen(terminal)) {
