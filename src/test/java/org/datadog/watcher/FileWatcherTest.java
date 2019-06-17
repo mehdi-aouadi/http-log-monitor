@@ -13,6 +13,7 @@ import java.nio.file.WatchService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.datadog.parser.OutputHandler;
 import org.junit.Before;
@@ -92,10 +93,10 @@ public class FileWatcherTest {
     when(this.fileSystemMock.provider()).thenReturn(this.fileSystemProviderMock);
     when(this.pathMock.toFile()).thenReturn(this.fileMock);
     when(this.fileMock.length()).thenReturn(
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 3),
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4),
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4)
-        + (long) (this.firstLogLine.length() + this.secondLogLine.length() + this.thirdLogLine.length() + 6)
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 1),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 2),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 2)
+        + (long) (this.firstLogLine.length() + this.secondLogLine.length() + this.thirdLogLine.length() + 3)
     );
     when(this.pathMock.getFileName()).thenReturn(this.pathMock);
 
@@ -129,6 +130,8 @@ public class FileWatcherTest {
     this.fileWatcherUnderTest.watchFile();
     argumentCaptor = ArgumentCaptor.forClass(String.class);
     verify(this.outputHandlerMock, times(3)).process(argumentCaptor.capture());
+
+    List<String> test = argumentCaptor.getAllValues();
 
     assertTrue(argumentCaptor.getAllValues().contains(firstLogLine));
     assertTrue(argumentCaptor.getAllValues().contains(secondLogLine));

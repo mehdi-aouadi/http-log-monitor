@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -jar http-monitoring.jar "$@"
+java -jar http-log-monitor.jar "$@"

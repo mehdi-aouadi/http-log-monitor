@@ -17,10 +17,12 @@ public class DateTimeUtils {
       = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z");
 
   /**
-   * Parses an strftime formatted {@link String} to a {@link ZonedDateTime}.
-   * @param date strftime formatted {@link String}
-   * @return a {@link ZonedDateTime} parsed from the strftime formatted {@link String}
-   * @throws ParseException if the {@link String} to parse doesn't respect the strftime format
+   * Parses an "dd/MMM/yyyy:HH:mm:ss Z" formatted {@link String} to a {@link ZonedDateTime}.
+   * @param date {@link String} date time representation
+   * @return a {@link ZonedDateTime} parsed from the "dd/MMM/yyyy:HH:mm:ss Z"
+   * formatted {@link String}
+   * @throws ParseException if the {@link String} to parse doesn't is not in the
+   * "dd/MMM/yyyy:HH:mm:ss Z" format
    * @throws NullPointerException if the {@link String} to parse is null
    */
   public static ZonedDateTime retrieveLogDateTime(@NonNull String date) throws ParseException {
@@ -28,7 +30,9 @@ public class DateTimeUtils {
       return ZonedDateTime.parse(date, DATE_TIME_FORMATTER);
     } catch (DateTimeParseException dateTimeParseException) {
       throw new ParseException(
-          String.format("Invalid strftime Format. Unable to parse value : %s to a ZonedDateTime.",
+          String.format(
+              "Invalid Date Time Format. Date Time format must be \"dd/MMM/yyyy:HH:mm:ss Z\". Unable to parse "
+                  + "value : %s to a ZonedDateTime.",
               date),
           dateTimeParseException);
     }

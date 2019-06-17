@@ -64,7 +64,8 @@ public class CommonLogFormatUtils {
       return sectionMatcher.group(SECTION_GROUP);
     } else {
       throw new ParseException(
-          String.format("Invalid resource url. Unable to retrieve section from %s", resource)
+          String.format("Missing section in resource url. Unable to retrieve section from %s",
+              resource)
       );
     }
   }

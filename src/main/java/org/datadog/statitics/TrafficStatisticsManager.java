@@ -128,24 +128,7 @@ public class TrafficStatisticsManager {
    */
   @Subscribe
   public void consumeClfEvent(CommonLogFormatEntry commonLogFormatEntry) {
-    // The following check is made only for unusual behaviour.
-    // According to Guava EventBus documentation the events are received in the same
-    //  publishing order.
-    // This check enforces a clean log store in case of corrupted log entries or unordered events
-    // reception.
-    CommonLogFormatEntry lastLogEntry = this.logStore.peek();
-    if (lastLogEntry != null
-        && commonLogFormatEntry.getLogDateTime().isBefore(lastLogEntry.getLogDateTime())
-    ) {
-      log.warn(
-          "Common Log Format Entry Event discarded : {}. "
-              + "Log date time is before the last log entry in the buffer {}.",
-          commonLogFormatEntry,
-          lastLogEntry
-      );
-    } else {
-      this.logStore.add(commonLogFormatEntry);
-    }
+    this.logStore.add(commonLogFormatEntry);
   }
 
 }
