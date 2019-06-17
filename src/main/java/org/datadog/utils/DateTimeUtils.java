@@ -42,7 +42,7 @@ public class DateTimeUtils {
   }
 
   /**
-   * Generates a human readable {@link String} representation od a duration
+   * Generates a human readable {@link String} representation of a duration
    * between two {@link Instant}.
    * @param from {@link Instant} duration start.
    * @param to  {@link Instant} duration end.
