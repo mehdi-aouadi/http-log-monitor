@@ -57,7 +57,7 @@ public class FileWatcherImpl implements ResourceWatcher {
 
   /**
    * Launches a {@link WatchService} and register the file's parent directory for events of type
-   *  {@link StandardWatchEventKinds.ENTRY_MODIFY}.
+   *  {@link StandardWatchEventKinds#ENTRY_MODIFY}.
    *  The events are filtered according to the filename. Only the file modications are handler.
    *  A first step consists of couting the existing characters already present in the file before
    *    registering the file for watching the modificatiion events.
