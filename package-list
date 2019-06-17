@@ -1,0 +1,10 @@
+org.datadog
+org.datadog.alerts
+org.datadog.cli
+org.datadog.gui
+org.datadog.log
+org.datadog.modules
+org.datadog.parser
+org.datadog.statitics
+org.datadog.utils
+org.datadog.watcher

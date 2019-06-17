@@ -1,9 +1,0 @@
-# IntelliJ
-/.idea/*
-*/target/*
-*.iml
-logFile.*
-
-# Maven
-target/
-doc/
