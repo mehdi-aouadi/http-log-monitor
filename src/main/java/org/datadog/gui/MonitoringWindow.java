@@ -58,7 +58,7 @@ class MonitoringWindow extends BasicWindow {
         new Label("File path : " + applicationOptions.getFilePath())
     );
     this.secondColumnSettingsPanel.addComponent(
-        new Label("Check threshold every : "
+        new Label("Check hits average for the last : "
             + (applicationOptions.getRefreshFrequency()
             * applicationOptions.getThresholdRefreshCycles()
             + " s")
@@ -94,7 +94,7 @@ class MonitoringWindow extends BasicWindow {
     );
     TerminalSize columnSettingsSection = new TerminalSize(
         terminalSize.getColumns() / 2,
-        terminalSize.getRows() / 9
+        terminalSize.getRows() / 10
     );
 
     this.firstColumnSettingsPanel.setPreferredSize(columnSettingsSection);
