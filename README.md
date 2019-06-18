@@ -41,7 +41,7 @@ To display the application help run the scipt with ``` --help ```:
 ```
 This will print the following help menu:
 ```
-usage: ./stats.sh [-d <arg>] [-f <arg>] [-r <arg>] [-t <arg>]  
+usage: ./stats.sh [-f <arg>] [-r <arg>] [-t <arg>] [-c <arg>]  
     -f,--log-file-path <arg>      The log file absolute path, default /tmp/access.log
     -r,--refresh-frequency <arg>  The reporting refresh frequency in seconds, default 10 
     -t,--hits-threshold <arg>     Hits threshold on average during the monitoring duration, default  100
