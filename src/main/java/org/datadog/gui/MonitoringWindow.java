@@ -49,7 +49,7 @@ class MonitoringWindow extends BasicWindow {
     this.firstColumnSettingsPanel.addComponent(
         new Label("Refresh every : " + this.applicationOptions.getRefreshFrequency() + " s")
     );
-    firstColumnSettingsPanel.addComponent(
+    this.firstColumnSettingsPanel.addComponent(
         new Label("Hits average threshold : " + applicationOptions.getTrafficThreshold())
     );
     this.optionsPanel.addComponent(this.firstColumnSettingsPanel);
@@ -74,15 +74,18 @@ class MonitoringWindow extends BasicWindow {
         this.trafficStatisticsPanel.withBorder(Borders.singleLine("Traffic Statistics"))
     );
     monitoringPanel.addComponent(
-        trafficAlertsPanel.withBorder(Borders.singleLine("Traffic Alerts"))
+        this.trafficAlertsPanel.withBorder(Borders.singleLine("Traffic Alerts"))
     );
     Panel rootPanel = new Panel(new LinearLayout(Direction.VERTICAL));
     rootPanel.addComponent(
-        settingsPanel.withBorder(Borders.singleLine("Monitoring Settings"))
+        this.settingsPanel.withBorder(Borders.singleLine("Monitoring Settings"))
     );
+    Panel quitMessagePanel = new Panel();
+    quitMessagePanel.addComponent(new Label("Press '^C' or click on 'X' to quit."));
     rootPanel.addComponent(monitoringPanel);
     Panel statusPanel = new Panel();
     rootPanel.addComponent(statusPanel);
+    rootPanel.addComponent(quitMessagePanel);
     setComponent(rootPanel);
     setHints(Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS));
   }
@@ -103,7 +106,7 @@ class MonitoringWindow extends BasicWindow {
 
     TerminalSize monitoringSections = new TerminalSize(
         terminalSize.getColumns() / 2,
-        terminalSize.getRows() * 7 / 8
+        terminalSize.getRows() * 6 / 8
     );
 
     this.trafficStatisticsPanel.setPreferredSize(monitoringSections);
