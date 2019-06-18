@@ -101,7 +101,7 @@ A Console Graphical User Interface build with the [Lanterna Java Graphical Libra
 It consumes both the traffics statistics events published by the traffic statistics module and the traffic alert events published by the alert manager module.  
 This module is launched in a separate thread.  
 
-### Improvments
+### Improvements
 
 * The file watcher is based on the WatcherService which avoid performing file read when there are no new logs. This may cause a problem if the log file is kept open by a logger and hence the WatchService doesn't trigger the file modification. It may be a better options to poll the file in some situations. I may add the polling file watcher implementation and let the user choose the reading mode.
 * The alerts and statistics may be exposed through a RESTfull API.
