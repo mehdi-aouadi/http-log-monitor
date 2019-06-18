@@ -31,41 +31,47 @@ class MonitoringWindow extends BasicWindow {
   private final Panel optionsPanel = new Panel();
   private final Panel firstColumnSettingsPanel = new Panel();
   private final Panel secondColumnSettingsPanel = new Panel();
+  private Label startedTimeLabel = new Label("Monitoring started 0s ago.");
 
   private final EvictingQueue<TrafficAlert> trafficAlertsBuffer = EvictingQueue.create(50);
 
   private final Instant monitoringStartingTime = Instant.now();
 
-  private Label startedTimeLabel = new Label("Monitoring started "
-      + toPrettyDuration(monitoringStartingTime, Instant.now()) + " ago.");
+  private Instant lastRefresh = Instant.now();
+
+  private final ApplicationOptions applicationOptions;
 
   MonitoringWindow(ApplicationOptions applicationOptions) {
-    settingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-    optionsPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
-    firstColumnSettingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-    firstColumnSettingsPanel.addComponent(
-        new Label("Refresh every : " + applicationOptions.getRefreshFrequency() + " s")
+    this.applicationOptions = applicationOptions;
+    this.settingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+    this.optionsPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
+    this.firstColumnSettingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+    this.firstColumnSettingsPanel.addComponent(
+        new Label("Refresh every : " + this.applicationOptions.getRefreshFrequency() + " s")
     );
     firstColumnSettingsPanel.addComponent(
         new Label("Hits average threshold : " + applicationOptions.getTrafficThreshold())
     );
-    optionsPanel.addComponent(firstColumnSettingsPanel);
-    secondColumnSettingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-    secondColumnSettingsPanel.addComponent(
+    this.optionsPanel.addComponent(this.firstColumnSettingsPanel);
+    this.secondColumnSettingsPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+    this.secondColumnSettingsPanel.addComponent(
         new Label("File path : " + applicationOptions.getFilePath())
     );
-    secondColumnSettingsPanel.addComponent(
+    this.secondColumnSettingsPanel.addComponent(
         new Label("Check threshold every : "
-            + applicationOptions.getRefreshFrequency() * applicationOptions.getRefreshFrequency())
+            + (applicationOptions.getRefreshFrequency()
+            * applicationOptions.getThresholdRefreshCycles()
+            + " s")
+        )
     );
-    optionsPanel.addComponent(secondColumnSettingsPanel);
-    settingsPanel.addComponent(optionsPanel);
-    settingsPanel.addComponent(startedTimeLabel);
-    trafficStatisticsPanel.setLayoutManager(new LinearLayout());
-    trafficAlertsPanel.setLayoutManager(new LinearLayout());
+    this.optionsPanel.addComponent(this.secondColumnSettingsPanel);
+    this.settingsPanel.addComponent(this.optionsPanel);
+    this.settingsPanel.addComponent(this.startedTimeLabel);
+    this.trafficStatisticsPanel.setLayoutManager(new LinearLayout());
+    this.trafficAlertsPanel.setLayoutManager(new LinearLayout());
     Panel monitoringPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
     monitoringPanel.addComponent(
-        trafficStatisticsPanel.withBorder(Borders.singleLine("Traffic Statistics"))
+        this.trafficStatisticsPanel.withBorder(Borders.singleLine("Traffic Statistics"))
     );
     monitoringPanel.addComponent(
         trafficAlertsPanel.withBorder(Borders.singleLine("Traffic Alerts"))
@@ -91,63 +97,67 @@ class MonitoringWindow extends BasicWindow {
         terminalSize.getRows() / 9
     );
 
-    firstColumnSettingsPanel.setPreferredSize(columnSettingsSection);
-    secondColumnSettingsPanel.setPreferredSize(columnSettingsSection);
-    settingsPanel.setPreferredSize(settingsSection);
+    this.firstColumnSettingsPanel.setPreferredSize(columnSettingsSection);
+    this.secondColumnSettingsPanel.setPreferredSize(columnSettingsSection);
+    this.settingsPanel.setPreferredSize(settingsSection);
 
     TerminalSize monitoringSections = new TerminalSize(
         terminalSize.getColumns() / 2,
         terminalSize.getRows() * 7 / 8
     );
 
-    trafficStatisticsPanel.setPreferredSize(monitoringSections);
-    trafficAlertsPanel.setPreferredSize(monitoringSections);
+    this.trafficStatisticsPanel.setPreferredSize(monitoringSections);
+    this.trafficAlertsPanel.setPreferredSize(monitoringSections);
   }
 
   void handleTrafficStatistics(TrafficStatistic trafficStatistic) {
-    this.settingsPanel.removeComponent(startedTimeLabel);
+    this.lastRefresh = this.lastRefresh.plusSeconds(this.applicationOptions.getRefreshFrequency());
+    this.settingsPanel.removeComponent(this.startedTimeLabel);
     this.startedTimeLabel = new Label("Monitoring started "
-        + toPrettyDuration(monitoringStartingTime, Instant.now()) + " ago.");
-    this.settingsPanel.addComponent(startedTimeLabel);
-    trafficStatisticsPanel.removeAllComponents();
-    trafficStatisticsPanel.addComponent(new Label("\nSummary").addStyle(SGR.BOLD));
-    trafficStatisticsPanel.addComponent(new Label("Total Requests: "
-        + trafficStatistic.getTotalHitsCount()));
-    trafficStatisticsPanel.addComponent(new Label("Success Requests: "
-        + trafficStatistic.getSuccessRequestsCount()).setForegroundColor(
-            TextColor.Factory.fromString("#003c00"))
+        + toPrettyDuration(
+        this.monitoringStartingTime,
+        this.lastRefresh) + " ago."
     );
-    trafficStatisticsPanel.addComponent(new Label("Client Error requests: "
+    this.settingsPanel.addComponent(this.startedTimeLabel);
+    this.trafficStatisticsPanel.removeAllComponents();
+    this.trafficStatisticsPanel.addComponent(new Label("\nSummary").addStyle(SGR.BOLD));
+    this.trafficStatisticsPanel.addComponent(new Label("Total Requests: "
+        + trafficStatistic.getTotalHitsCount()));
+    this.trafficStatisticsPanel.addComponent(new Label("Success Requests: "
+        + trafficStatistic.getSuccessRequestsCount()).setForegroundColor(
+        TextColor.Factory.fromString("#003c00"))
+    );
+    this.trafficStatisticsPanel.addComponent(new Label("Client Error requests: "
         + trafficStatistic.getClientErrorRequestCount()).setForegroundColor(
         TextColor.Factory.fromString("#5e0000"))
     );
-    trafficStatisticsPanel.addComponent(new Label("Server Error requests: "
+    this.trafficStatisticsPanel.addComponent(new Label("Server Error requests: "
         + trafficStatistic.getServerErrorRequestCount()).setForegroundColor(
         TextColor.Factory.fromString("#cc0000"))
     );
-    trafficStatisticsPanel.addComponent(new Label("Total Bytes Transferred: "
+    this.trafficStatisticsPanel.addComponent(new Label("Total traffic size: "
         + GuiFormatUtils.humanReadableByteCount(trafficStatistic.getTotalTrafficSize())));
-    trafficStatisticsPanel.addComponent(new Label("\nHits By Section").addStyle(SGR.BOLD));
+    this.trafficStatisticsPanel.addComponent(new Label("\nHits By Section").addStyle(SGR.BOLD));
     trafficStatistic.getSectionsHits()
         .forEach(entry ->
-            trafficStatisticsPanel.addComponent(
+            this.trafficStatisticsPanel.addComponent(
                 new Label(entry.getKey() + " " + entry.getValue())
             )
       );
-    trafficStatisticsPanel.addComponent(new Label("\nHits By Method").addStyle(SGR.BOLD));
+    this.trafficStatisticsPanel.addComponent(new Label("\nHits By Method").addStyle(SGR.BOLD));
     trafficStatistic.getMethodsHits().entrySet().stream()
         .sorted(Collections.reverseOrder(comparingByValue()))
         .forEach(entry ->
-            trafficStatisticsPanel.addComponent(
+            this.trafficStatisticsPanel.addComponent(
                 new Label(entry.getKey() + " " + entry.getValue())
             )
     );
   }
 
   void handleTrafficAlert(TrafficAlert alert) {
-    trafficAlertsBuffer.add(alert);
-    trafficAlertsPanel.removeAllComponents();
-    for (TrafficAlert trafficAlert : trafficAlertsBuffer) {
+    this.trafficAlertsBuffer.add(alert);
+    this.trafficAlertsPanel.removeAllComponents();
+    for (TrafficAlert trafficAlert : this.trafficAlertsBuffer) {
       Label label = new Label(trafficAlert.getMessage()).addStyle(SGR.BOLD);
       if (trafficAlert.getAlertType() == TrafficAlert.AlertType.HIGH_TRAFFIC) {
         label.setForegroundColor(TextColor.Factory.fromString("#5e0000"));
@@ -155,7 +165,7 @@ class MonitoringWindow extends BasicWindow {
         label.setForegroundColor(TextColor.Factory.fromString("#003c00"));
       }
       label.setText(label.getText() + "\n ");
-      trafficAlertsPanel.addComponent(label);
+      this.trafficAlertsPanel.addComponent(label);
     }
   }
 
