@@ -66,23 +66,24 @@ public class FileWatcherTest {
 
   private final String initialFileContent = firstLineToSkip +
       System.getProperty("line.separator") +
-      secondLineToSkip;
+      secondLineToSkip +
+      System.getProperty("line.separator");
 
   private final String firstFileAddition = this.initialFileContent +
-      System.getProperty("line.separator") +
       this.firstLogLine +
       System.getProperty("line.separator") +
       this.secondLogLine +
       System.getProperty("line.separator") +
-      this.thirdLogLine;
+      this.thirdLogLine +
+      System.getProperty("line.separator");
 
   private final String SecondFileAddition = this.firstFileAddition +
-      System.getProperty("line.separator") +
       this.fourthLogLine +
       System.getProperty("line.separator") +
       this.fifthLogLine +
       System.getProperty("line.separator") +
-      this.sixthLogLine;
+      this.sixthLogLine +
+      System.getProperty("line.separator");
 
   @Before
   public void init() throws IOException, InterruptedException {
@@ -92,10 +93,10 @@ public class FileWatcherTest {
     when(this.fileSystemMock.provider()).thenReturn(this.fileSystemProviderMock);
     when(this.pathMock.toFile()).thenReturn(this.fileMock);
     when(this.fileMock.length()).thenReturn(
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 3),
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4),
-        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 4)
-            + (long) (this.firstLogLine.length() + this.secondLogLine.length() + this.thirdLogLine.length() + 6)
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 2 * System.getProperty("line.separator").length()),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 2 * System.getProperty("line.separator").length()),
+        (long) (this.firstLineToSkip.length() + this.secondLineToSkip.length() + 2 * System.getProperty("line.separator").length())
+            + (long) (this.firstLogLine.length() + this.secondLogLine.length() + this.thirdLogLine.length() + 3 * System.getProperty("line.separator").length())
     );
     when(this.pathMock.getFileName()).thenReturn(this.pathMock);
 
