@@ -106,13 +106,17 @@ This module is launched in a separate thread.
 * The file watcher is based on the WatcherService which avoid performing file read when there are no new logs. This may cause a problem if the log file is kept open by a logger and hence the WatchService doesn't trigger the file modification. It may be a better options to poll the file in some situations. I may add the polling file watcher implementation and let the user choose the reading mode.
 * The alerts and statistics may be exposed through a RESTfull API.
 * Support more log formats. Either preconfigure different log format or let the user describe the format with a custom regular expression for example.
-* Split the modules to completely separate application that can be deployed in differetn machines. A File Watcher for example may be thrown in a distant machine and the exposes the logs through a web API.
+* Split the modules to separate applications that can be deployed in different independant environments. A File Watcher for example may be thrown in a distant machine and the exposes the logs through a web API.
+* The Traffic Alert Manager module depends on the Traffic Statistics module as it consumes the Traffic Statistics. It may be better to make it independant and directly consume the log events. That will gives the user the abality to run the Alert Manager alone if needed.
 
 
 ## License
 
 This software is under the [MIT license].
 
+## Demo  
+
+![Demo](resources/demo.gif)
 
 [here]: <https://mehdi-aouadi.github.io/http-log-monitor/>  
 [w3c-formatted HTTP access log]: <https://www.w3.org/Daemon/User/Config/Logging.html>  
