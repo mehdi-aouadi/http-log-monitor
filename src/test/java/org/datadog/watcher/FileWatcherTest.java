@@ -65,23 +65,23 @@ public class FileWatcherTest {
   private final String sixthLogLine = "Sixth Log Line";
 
   private final String initialFileContent = firstLineToSkip +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       secondLineToSkip;
 
   private final String firstFileAddition = this.initialFileContent +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.firstLogLine +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.secondLogLine +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.thirdLogLine;
 
   private final String SecondFileAddition = this.firstFileAddition +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.fourthLogLine +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.fifthLogLine +
-      System.lineSeparator() +
+      System.getProperty("line.separator") +
       this.sixthLogLine;
 
   @Before
