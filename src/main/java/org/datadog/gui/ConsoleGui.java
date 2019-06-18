@@ -24,12 +24,12 @@ public class ConsoleGui {
   }
   @Subscribe
   public void handleTrafficStatistics(TrafficStatistic trafficStatistic) {
-    monitoringWindow.handleTrafficStatistics(trafficStatistic);
+    this.monitoringWindow.handleTrafficStatistics(trafficStatistic);
   }
 
   @Subscribe
   public void handleTrafficAlert(TrafficAlert trafficAlert) {
-    monitoringWindow.handleTrafficAlert(trafficAlert);
+    this.monitoringWindow.handleTrafficAlert(trafficAlert);
   }
 
   /**
@@ -44,11 +44,11 @@ public class ConsoleGui {
       screen.setCursorPosition(null);
       screen.startScreen();
       terminal.addResizeListener((terminal1, terminalSize)
-          -> monitoringWindow.onTerminalResize(terminalSize));
-      monitoringWindow.onTerminalResize(screen.getTerminalSize());
+          -> this.monitoringWindow.onTerminalResize(terminalSize));
+      this.monitoringWindow.onTerminalResize(screen.getTerminalSize());
       MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(),
           null, new EmptySpace(TextColor.ANSI.BLACK));
-      gui.addWindowAndWait(monitoringWindow);
+      gui.addWindowAndWait(this.monitoringWindow);
       exitCallback.run();
     }
   }

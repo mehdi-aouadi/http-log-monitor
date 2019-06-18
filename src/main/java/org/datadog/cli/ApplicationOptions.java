@@ -26,12 +26,12 @@ public class ApplicationOptions {
    * The traffic hits count threshold to trigger a traffic alert.
    */
   @Builder.Default
-  private int trafficThreshold = 100000;
+  private int trafficThreshold = 100;
 
   /**
    *
    */
   @Builder.Default
-  private int thresholdRefreshCycles = 6;
+  private int thresholdRefreshCycles = 12;
 
 }
