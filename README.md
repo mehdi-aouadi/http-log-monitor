@@ -30,18 +30,18 @@ A docker image can be mounted using this [Dockerfile](Dockerfile).
 Run the application using the bash script:
 
 ```
-./stats.sh
+./http-monitoring.sh
 ```
 
 Press ctrl+c to stop the application. 
 
 To display the application help run the scipt with ``` --help ```:
 ```
-./stats.sh --help
+./http-monitoring.sh --help
 ```
 This will print the following help menu:
 ```
-usage: ./stats.sh [-f <arg>] [-r <arg>] [-t <arg>] [-c <arg>]  
+usage: ./http-monitoring.sh [-f <arg>] [-r <arg>] [-t <arg>] [-c <arg>]  
     -f,--log-file-path <arg>      The log file absolute path, default /tmp/access.log
     -r,--refresh-frequency <arg>  The reporting refresh frequency in seconds, default 10 
     -t,--hits-threshold <arg>     Hits threshold on average during the monitoring duration, default  100
@@ -51,7 +51,7 @@ usage: ./stats.sh [-f <arg>] [-r <arg>] [-t <arg>] [-c <arg>]
 Example,
 
 ```
-./stats.sh -f /var/log/access.log -r 10 -t 100 -c 12
+./http-monitoring.sh -f /var/log/access.log -r 10 -t 100 -c 12
 ```
 
 This will monitor the file located in ```/var/log/access.log```. The console will refresh every 10 seconds and checks if the traffic hits average during the last 12*10 seconds (2 minutes) has exceeded 100 hits.  
@@ -72,7 +72,7 @@ Move to the project root directory ```http-log-monitor``` and run
 A jar file ```http-log-mnitor.jar``` will be generated in ```/target``` subdirectory.  In order to make it visible to the bash script it must be moved to the project root directory:  
 Move to ```target``` and run :  
 ```
-cp target/stats.jar .
+cp target/http-log-monitor.jar .
 ```
 
 ### Logs  
