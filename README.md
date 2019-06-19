@@ -75,31 +75,31 @@ Move to ```target``` and run :
 cp target/stats.jar .
 ```
 
+### Logs  
+
+A log file called ```logFile.log``` is generated in the root directory.  
+
 ## Architecture
 The application is splitted into 3 main modules which communicate through a [Guava EventBus].
 
 ### File Watcher Module
-This module watches the specified log file for changes and read all the new lines when the file is modified.  
-It is based on the [Java WatchService] and reads the new lines only when a change on the file is detected. This avoid reading the file when there is no new logs.  
-The log lines are delegated to a Log Parser wich parses thems and publishes [CommonLogFormatEntry] events to the bus.
-This module is launched in a separate thread.  
+This module watches the log file for changes and read all the new lines when the file is modified.  
+It is based on the [Java WatchService] and reads the new lines only when a change on the file is detected. This avoid reading the file when there are no new logs.  
+The log lines are delegated to a Log Parser wich parses them and publishes [CommonLogFormatEntry] events to the bus.  
 The parser only recognizes [Common Log Format] logs. Example :  
 ```127.0.0.1 user-identifier frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326```  
 Notice the date format is ```dd/MMM/yyyy:HH:mm:ss Z``` and the request is double quotes limited.
 
 ### Traffic Statistics Manager Module
-This module consumes the [CommonLogFormatEntry], computes and publishes traffoic statistics every ```refresh-frequency``` seconds to the the bus.  The published traffic statistics are encapsulated in a [TafficStatistics] event.
-It uses a thread safe logs buffer to calculates the traffic statistics.  
-The traffic statistics computation is performed by a dynamic pool of threads.  
+This module consumes the [CommonLogFormatEntry] events, computes and publishes traffic statistics every ```refresh-frequency``` seconds to the the bus.  The published traffic statistics are encapsulated in a [TafficStatistics] event.  
 
 ### Alert Manager Module  
-This module triggers alerts when the traffic hits theshold is exceeded or recovered. It consumes the traffic statistics published by the Traffic Statistic Manager Module in order to avoid computing the initial logs again.  
-It uses a traffic statistics buffer internally and checks the traffic hits average every ```threshold-cycles * refresh-frequency``` seconds.  When the threshold is exceeded or the traffic is recovered it published a [TrafficAlert] event to the bus.
+This module triggers alerts when the average traffic hits theshold is exceeded or recovered. It consumes the traffic statistics published by the Traffic Statistic Manager Module in order to avoid computing the initial logs again.  
+It checks the traffic hits average during the kast ```threshold-cycles * refresh-frequency``` seconds.  When the threshold is exceeded or the traffic is recovered after having exceeded the threshold it published a [TrafficAlert] event to the bus.
 
 ### GUI Console
-A Console Graphical User Interface build with the [Lanterna Java Graphical Library].
+A Console style Graphical User Interface built with the [Lanterna Java Graphical Library].
 It consumes both the traffics statistics events published by the traffic statistics module and the traffic alert events published by the alert manager module.  
-This module is launched in a separate thread.  
 
 ### Improvements
 
