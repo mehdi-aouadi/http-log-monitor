@@ -34,7 +34,7 @@
     <maven.jar.plugin>3.0.2</maven.jar.plugin>
     <maven.site.plugin>3.7.1</maven.site.plugin>
     <maven.javadoc.plugin>3.1.0</maven.javadoc.plugin>
-    <junit.version>4.11</junit.version>
+    <junit.version>4.13.1</junit.version>
     <junitparams.version>1.0.2</junitparams.version>
     <org.slf4j.version>1.7.26</org.slf4j.version>
     <org.projectlombok.version>1.18.2</org.projectlombok.version>
